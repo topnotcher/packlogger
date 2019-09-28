@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.TextView
+import androidx.core.view.forEach
 import androidx.lifecycle.Observer
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
@@ -43,16 +44,20 @@ class ShowPacksFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(ShowPacksViewModel::class.java)
 
-        val scopes = listOf(SheetsScopes.SPREADSHEETS)
-        val credential = GoogleAccountCredential.usingOAuth2(activity!!.applicationContext, scopes)
-        val aacount = account!!.account
-        credential!!.selectedAccount = aacount
+        if (savedInstanceState == null) {
+            val scopes = listOf(SheetsScopes.SPREADSHEETS)
+            val credential =
+                GoogleAccountCredential.usingOAuth2(activity!!.applicationContext, scopes)
+            val aacount = account!!.account
+            credential!!.selectedAccount = aacount
 
-        viewModel.setCredential(credential)
-        viewModel.setSelection(selection)
+            viewModel.setCredential(credential)
+            viewModel.setSelection(selection)
 
-        viewModel.getPacks().observe(this, Observer<List<ShowPacksViewModel.PackData>> { packs ->
-            updatePacks(packs)
+        }
+        viewModel.getPacks()
+            .observe(this, Observer<List<ShowPacksViewModel.PackData>> { packs ->
+                updatePacks(packs)
         })
     }
 
@@ -60,53 +65,18 @@ class ShowPacksFragment : Fragment() {
         val table: TableLayout = activity!!.findViewById(R.id.packs_table)
         table.removeAllViewsInLayout()
 
-        var row = TableRow(context)
-        var tv: TextView? = null
-        row.layoutParams = TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT)
-
-        tv = addColumn(row, "ID")
-        tv.gravity = Gravity.RIGHT
-        tv.setTypeface(null, Typeface.BOLD)
-        tv.setPadding(15, 15, 15, 15)
-
-        tv = addColumn(row, "Name")
-        tv.setTypeface(null, Typeface.BOLD)
-
-        tv = addColumn(row, "Rating")
-        tv.setTypeface(null, Typeface.BOLD)
-        tv.gravity = Gravity.CENTER
-
-        tv = addColumn(row, "Date")
-        tv.gravity = Gravity.RIGHT
-        tv.setTypeface(null, Typeface.BOLD)
-        tv.setPadding(5,15,15,15)
-
-        table.addView(row)
-        addSeparator(table)
+        val row = addRow(table, "ID", "Name", "Rating", "Date")
+        row.forEach {
+            (it as TextView).setTypeface(null, Typeface.BOLD)
+        }
 
         packs.forEach {
-            val row = TableRow(context)
-            var textView: TextView? = null
-            textView = addColumn(row, it.id.toString())
-            textView.gravity = Gravity.RIGHT
-            textView.setPadding(15, 15, 15, 15)
-
-            addColumn(row, it.name)
-
-            if (it.rating < 1) {
-                textView = addColumn(row, "")
-            } else {
-                textView = addColumn(row, it.rating.toString())
+            var rating = ""
+            if (it.rating >= 1) {
+                rating = it.rating.toString()
             }
-            textView.gravity = Gravity.CENTER
 
-            textView = addColumn(row, it.date.toString())
-            textView.gravity = Gravity.RIGHT
-            textView.setPadding(5,15,15,15)
-
-            row.layoutParams = TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT)
-            table.addView(row)
-            addSeparator(table)
+            addRow(table, it.id.toString(), it.name, rating, it.date)
         }
     }
 
@@ -119,6 +89,32 @@ class ShowPacksFragment : Fragment() {
         row.addView(textView)
 
         return textView
+    }
+
+    private fun addRow(table: TableLayout, vararg values: String) : TableRow {
+        data class Padding(val left: Int, val right: Int)
+        val padding = arrayOf(Padding(15, 15), Padding(5, 5), Padding(5, 5), Padding(5, 15))
+
+
+        val gravity = intArrayOf(Gravity.RIGHT, Gravity.LEFT, Gravity.CENTER, Gravity.RIGHT)
+        val row = TableRow(context)
+        var idx = 0
+        values.forEach {
+            val tv = addColumn(row, it)
+            if (idx < gravity.size) {
+                tv.gravity = gravity[idx]
+            }
+            if (idx < padding.size) {
+                tv.setPadding(padding[idx].left, 15, padding[idx].right, 15)
+            }
+            idx += 1
+        }
+
+        row.layoutParams = TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT)
+        table.addView(row)
+        addSeparator(table)
+
+        return row
     }
 
     private fun addSeparator(table: TableLayout) {
