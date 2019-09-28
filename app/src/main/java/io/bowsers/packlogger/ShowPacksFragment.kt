@@ -1,7 +1,10 @@
 package io.bowsers.packlogger
 
+import android.graphics.Color
+import android.graphics.Typeface
 import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
+import android.view.Gravity
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -56,25 +59,74 @@ class ShowPacksFragment : Fragment() {
     private fun updatePacks(packs: List<ShowPacksViewModel.PackData>) {
         val table: TableLayout = activity!!.findViewById(R.id.packs_table)
         table.removeAllViewsInLayout()
+
+        var row = TableRow(context)
+        var tv: TextView? = null
+        row.layoutParams = TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT)
+
+        tv = addColumn(row, "ID")
+        tv.gravity = Gravity.RIGHT
+        tv.setTypeface(null, Typeface.BOLD)
+        tv.setPadding(15, 15, 15, 15)
+
+        tv = addColumn(row, "Name")
+        tv.setTypeface(null, Typeface.BOLD)
+
+        tv = addColumn(row, "Rating")
+        tv.setTypeface(null, Typeface.BOLD)
+        tv.gravity = Gravity.CENTER
+
+        tv = addColumn(row, "Date")
+        tv.gravity = Gravity.RIGHT
+        tv.setTypeface(null, Typeface.BOLD)
+        tv.setPadding(5,15,15,15)
+
+        table.addView(row)
+        addSeparator(table)
+
         packs.forEach {
             val row = TableRow(context)
-            addColumn(row, it.id.toString())
+            var textView: TextView? = null
+            textView = addColumn(row, it.id.toString())
+            textView.gravity = Gravity.RIGHT
+            textView.setPadding(15, 15, 15, 15)
+
             addColumn(row, it.name)
-            addColumn(row, it.rating.toString())
-            addColumn(row, it.date.toString())
+
+            if (it.rating < 1) {
+                textView = addColumn(row, "")
+            } else {
+                textView = addColumn(row, it.rating.toString())
+            }
+            textView.gravity = Gravity.CENTER
+
+            textView = addColumn(row, it.date.toString())
+            textView.gravity = Gravity.RIGHT
+            textView.setPadding(5,15,15,15)
 
             row.layoutParams = TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT)
             table.addView(row)
+            addSeparator(table)
         }
     }
 
-    private fun addColumn(row: TableRow, text: String) {
+    private fun addColumn(row: TableRow, text: String) : TextView {
         val textView = TextView(context)
         textView.minWidth = 4
         textView.layoutParams = TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT)
 
         textView.text = text
         row.addView(textView)
+
+        return textView
+    }
+
+    private fun addSeparator(table: TableLayout) {
+        val row = TableRow(context)
+        row.layoutParams = TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT)
+        row.minimumHeight = 1
+        row.setBackgroundColor(Color.parseColor("#d9d9d9"))
+        table.addView(row)
     }
 
     private var selection: String? = null

@@ -73,21 +73,34 @@ class ShowPacksViewModel : ViewModel() {
             .setApplicationName("PackLogger")  // TODO
             .build()
         //.setApplicationName(getString(R.string.app_name))
-        val range = "Ratings!A2:D"
+        var range: String
+
+        if (selection == "top_packs") {
+            range = "TOP!A2:D"
+        } else {
+            range = "ALL!A2:D"
+        }
+
         val response = service.Spreadsheets().values().get(spreadsheetId, range).execute()
         val values: List<List<Any>> = response.getValues()
 
         val newList = LinkedList<PackData>()
 
-        values.forEach {row ->
-            if (row.size >= 4) {
-                val id = (row[0] as String).toInt()
-                val name = row[1] as String
-                val rating = (row[2] as String).toDouble()
-                val date = row[3] as String
+        values.forEach { row ->
+            val id = (row[0] as String).toInt()
+            val name = row[1] as String
 
-                newList.add(PackData(id, name, rating, date))
+            var rating: Double
+            var date: String
+            if (row.size >= 4) {
+                rating = (row[2] as String).toDouble()
+                date = row[3] as String
+            } else {
+                rating = 0.0
+                date = ""
             }
+
+            newList.add(PackData(id, name, rating, date))
         }
         return newList
     }
