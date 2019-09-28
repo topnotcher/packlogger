@@ -30,7 +30,9 @@ class MainActivity : FragmentActivity(), MainFragment.OnFragmentInteractionListe
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        requestSignIn()
+        if (savedInstanceState == null) {
+            requestSignIn()
+        }
     }
 
     fun showPacks(view: View) {
@@ -59,6 +61,7 @@ class MainActivity : FragmentActivity(), MainFragment.OnFragmentInteractionListe
 
         val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestScopes(Scope(SheetsScopes.SPREADSHEETS))
+            .requestEmail()
             .build()
         val client = GoogleSignIn.getClient(applicationContext, signInOptions)
 
@@ -77,6 +80,10 @@ class MainActivity : FragmentActivity(), MainFragment.OnFragmentInteractionListe
     private fun handleSignInResult(task: Task<GoogleSignInAccount>) {
         try {
             account = task.getResult(ApiException::class.java)
+ //           val scopes = listOf(SheetsScopes.SPREADSHEETS)
+  //          credential = GoogleAccountCredential.usingOAuth2(applicationContext, scopes)
+   //         credential!!.selectedAccount = account!!.account
+
             supportFragmentManager.beginTransaction()
             .add(R.id.main_container, main)
             .commit()
@@ -86,24 +93,5 @@ class MainActivity : FragmentActivity(), MainFragment.OnFragmentInteractionListe
             Log.w("PackLogger", "signInResult: failed code = " + e.statusCode)
         }
 
-//            GoogleSignIn.getSignedInAccountFromIntent(data)
-//                .addOnSuccessListener { account ->
-//                    val scopes = listOf(SheetsScopes.SPREADSHEETS)
-//                    val credential = GoogleAccountCredential.usingOAuth2(applicationContext, scopes)
-//                    credential.selectedAccount = account.account
-
-//                    val jsonFactory = JacksonFactory.getDefaultInstance()
-                    // GoogleNetHttpTransport.newTrustedTransport()
-//                    val httpTransport =  AndroidHttp.newCompatibleTransport()
-//                    val service = Sheets.Builder(httpTransport, jsonFactory, credential)
-//                        .setApplicationName(getString(R.string.app_name))
-//                        .build()
-
-//                    createSpreadsheet(service);
-//                }
-//                .addOnFailureListener { e ->
-//                    Timber.e(e)
-//                }
-//        }
     }
 }

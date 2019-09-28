@@ -6,8 +6,13 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
+import android.widget.TableLayout
+import android.widget.TableRow
+import android.widget.TextView
+import androidx.lifecycle.Observer
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+import com.google.api.services.sheets.v4.SheetsScopes
 
 
 class ShowPacksFragment : Fragment() {
@@ -35,14 +40,42 @@ class ShowPacksFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(ShowPacksViewModel::class.java)
 
-        if (activity != null) {
-            val editText: EditText = activity!!.findViewById(R.id.editText)
-            editText.setText(selection)
-        }
-        viewModel.setAccount(account)
+        val scopes = listOf(SheetsScopes.SPREADSHEETS)
+        val credential = GoogleAccountCredential.usingOAuth2(activity!!.applicationContext, scopes)
+        val aacount = account!!.account
+        credential!!.selectedAccount = aacount
+
+        viewModel.setCredential(credential)
         viewModel.setSelection(selection)
+
+        viewModel.getPacks().observe(this, Observer<List<ShowPacksViewModel.PackData>> { packs ->
+            updatePacks(packs)
+        })
     }
 
+    private fun updatePacks(packs: List<ShowPacksViewModel.PackData>) {
+        val table: TableLayout = activity!!.findViewById(R.id.packs_table)
+        table.removeAllViewsInLayout()
+        packs.forEach {
+            val row = TableRow(context)
+            addColumn(row, it.id.toString())
+            addColumn(row, it.name)
+            addColumn(row, it.rating.toString())
+            addColumn(row, it.date.toString())
+
+            row.layoutParams = TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT)
+            table.addView(row)
+        }
+    }
+
+    private fun addColumn(row: TableRow, text: String) {
+        val textView = TextView(context)
+        textView.minWidth = 4
+        textView.layoutParams = TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT)
+
+        textView.text = text
+        row.addView(textView)
+    }
 
     private var selection: String? = null
     private var account: GoogleSignInAccount? = null
@@ -59,7 +92,7 @@ class ShowPacksFragment : Fragment() {
          * @return A new instance of fragment MainFragment.
          */
         @JvmStatic
-        fun newInstance(selection: String, account: GoogleSignInAccount?) =
+        fun newInstance(selection: String, account: GoogleSignInAccount??) =
             ShowPacksFragment().apply {
                 arguments = Bundle().apply {
                     putString(SELECTION, selection)
