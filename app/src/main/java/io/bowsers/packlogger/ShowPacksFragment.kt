@@ -30,7 +30,6 @@ class ShowPacksFragment : Fragment() {
             selection = it.getString(SELECTION)
             account = it.getParcelable(ACCOUNT)
         }
-
     }
 
     override fun onCreateView(
@@ -55,6 +54,24 @@ class ShowPacksFragment : Fragment() {
             viewModel.setSelection(selection)
 
         }
+
+        if (table == null) {
+            val padVertical = 30
+            table = DataTable(activity!!.findViewById(R.id.packs_table), context)
+            table!!
+                .setPadding(15, 15, padVertical, padVertical)
+                .setPadding(5, 5, padVertical, padVertical)
+                .setPadding(5, 5, padVertical, padVertical)
+                .setPadding(5, 15, padVertical, padVertical)
+
+                .setGravity(Gravity.RIGHT)
+                .setGravity(Gravity.LEFT)
+                .setGravity(Gravity.CENTER)
+                .setGravity(Gravity.RIGHT)
+
+                .setFontSize(20.0f)
+        }
+
         viewModel.getPacks()
             .observe(this, Observer<List<ShowPacksViewModel.PackData>> { packs ->
                 updatePacks(packs)
@@ -62,71 +79,22 @@ class ShowPacksFragment : Fragment() {
     }
 
     private fun updatePacks(packs: List<ShowPacksViewModel.PackData>) {
-        val table: TableLayout = activity!!.findViewById(R.id.packs_table)
-        table.removeAllViewsInLayout()
-
-        val row = addRow(table, "ID", "Name", "Rating", "Date")
-        row.forEach {
-            (it as TextView).setTypeface(null, Typeface.BOLD)
-        }
-
+        val t = table!!
+        t.clear()
+        t.addRow("ID", "Name", "Rating", "Date")
         packs.forEach {
             var rating = ""
             if (it.rating >= 1) {
                 rating = it.rating.toString()
             }
 
-            addRow(table, it.id.toString(), it.name, rating, it.date)
+            t.addRow(it.id.toString(), it.name, rating, it.date)
         }
-    }
-
-    private fun addColumn(row: TableRow, text: String) : TextView {
-        val textView = TextView(context)
-        textView.minWidth = 4
-        textView.layoutParams = TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT)
-
-        textView.text = text
-        row.addView(textView)
-
-        return textView
-    }
-
-    private fun addRow(table: TableLayout, vararg values: String) : TableRow {
-        data class Padding(val left: Int, val right: Int)
-        val padding = arrayOf(Padding(15, 15), Padding(5, 5), Padding(5, 5), Padding(5, 15))
-
-
-        val gravity = intArrayOf(Gravity.RIGHT, Gravity.LEFT, Gravity.CENTER, Gravity.RIGHT)
-        val row = TableRow(context)
-        var idx = 0
-        values.forEach {
-            val tv = addColumn(row, it)
-            if (idx < gravity.size) {
-                tv.gravity = gravity[idx]
-            }
-            if (idx < padding.size) {
-                tv.setPadding(padding[idx].left, 15, padding[idx].right, 15)
-            }
-            idx += 1
-        }
-
-        row.layoutParams = TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT)
-        table.addView(row)
-        addSeparator(table)
-
-        return row
-    }
-
-    private fun addSeparator(table: TableLayout) {
-        val row = TableRow(context)
-        row.layoutParams = TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT)
-        row.minimumHeight = 1
-        row.setBackgroundColor(Color.parseColor("#d9d9d9"))
-        table.addView(row)
     }
 
     private var selection: String? = null
     private var account: GoogleSignInAccount? = null
+    private var table: DataTable? = null
 
     companion object {
         private const val SELECTION = "SELECT"
