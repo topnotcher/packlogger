@@ -19,7 +19,7 @@ class ShowPacksViewModel : ViewModel() {
 
     private var credential: GoogleAccountCredential? = null
     private var selection: String? = null
-    private var packList: List<PackData> = LinkedList<PackData>()
+    private var packList: List<PackData> = LinkedList()
 
     val packs: MutableLiveData<List<PackData>> by lazy {
         MutableLiveData<List<PackData>>().also {

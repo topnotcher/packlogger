@@ -51,6 +51,14 @@ class MainActivity : FragmentActivity(), MainFragment.OnFragmentInteractionListe
         ft.commit()
     }
 
+    fun findPack(view: View) {
+        supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.main_container, FindPack())
+            .addToBackStack(null)
+            .commit()
+    }
+
     override fun onMainFragmentInteraction(uri: Uri) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
