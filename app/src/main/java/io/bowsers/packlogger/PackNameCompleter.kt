@@ -1,6 +1,7 @@
 package io.bowsers.packlogger
 
 import android.content.Context
+import android.os.AsyncTask
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,18 +9,34 @@ import android.widget.BaseAdapter
 import android.widget.Filter
 import android.widget.Filterable
 import android.widget.TextView
+import androidx.lifecycle.MutableLiveData
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+import com.google.api.client.http.javanet.NetHttpTransport
+import com.google.api.client.json.jackson2.JacksonFactory
+import com.google.api.services.sheets.v4.Sheets
 import java.util.*
 
-class PackNameCompleter(private val context: Context, private val resource: Int): BaseAdapter(), Filterable {
+class PackNameCompleter(
+    private val context: Context,
+    private val resource: Int,
+    private val credential: GoogleAccountCredential?
+) : BaseAdapter(), Filterable {
+
     private data class PackData(val id: Int, val name: String)
     private var resultList = ArrayList<PackData>()
-    private var packList = arrayOf(
-        PackData(1, "Trident"),
-        PackData(2, "Blade"),
-        PackData(3, "Talon"),
-        PackData(4, "Umbriel"),
-        PackData(5, "Oberon")
-    )
+    //private var packList = arrayOf(
+        //PackData(1, "Trident"),
+        //PackData(2, "Blade"),
+        //PackData(3, "Talon"),
+        //PackData(4, "Umbriel"),
+        //PackData(5, "Oberon")
+    //)
+
+    private val packs: MutableLiveData<List<PackData>> by lazy {
+        MutableLiveData<List<PackData>>().also {
+            loadPacks()
+        }
+    }
 
     override fun getCount(): Int {
         return resultList.size
@@ -49,9 +66,11 @@ class PackNameCompleter(private val context: Context, private val resource: Int)
                     // initial size >= 2: there are at most two packs that start with any given letter.
                     val list = ArrayList<PackData>(4)
 
-                    packList.forEach {
-                        if (constraint != null && it.name.toLowerCase().startsWith(constraint.toString().toLowerCase())) {
-                            list.add(it)
+                    if (packs.value != null) {
+                        packs.value!!.forEach {
+                            if (constraint != null && it.name.toLowerCase().startsWith(constraint.toString().toLowerCase())) {
+                                list.add(it)
+                            }
                         }
                     }
 
@@ -69,5 +88,45 @@ class PackNameCompleter(private val context: Context, private val resource: Int)
                 }
             }
         }
+    }
+
+    private fun loadPacks() {
+        object: AsyncTask<String, Int, List<PackData>>() {
+            override fun doInBackground(vararg params: String?): List<PackData> {
+                return loadPacksForReal()
+            }
+
+            override fun onPostExecute(result: List<PackData>) {
+                super.onPostExecute(result)
+                if (result != null)
+                    packs.postValue(result)
+            }
+        }.execute()
+    }
+
+    private fun loadPacksForReal() : List<PackData> {
+        val spreadsheetId = "1G8EOexvxcP6n86BQsORNtwxsgpRT-VPrZt07NOZ-q-Q"
+        val jsonFactory = JacksonFactory.getDefaultInstance()
+        //GoogleNetHttpTransport.newTrustedTransport()
+        val httpTransport = NetHttpTransport()
+        val service = Sheets.Builder(httpTransport, jsonFactory, credential)
+            .setApplicationName("PackLogger")  // TODO
+            .build()
+        //.setApplicationName(getString(R.string.app_name))
+
+        var range = "all-packs!A2:B"
+        val response = service.Spreadsheets().values().get(spreadsheetId, range).execute()
+        val values: List<List<Any>> = response.getValues()
+
+        val newList = ArrayList<PackData>(values.size)
+
+        values.forEach { row ->
+            val id = (row[0] as String).toInt()
+            val name = row[1] as String
+
+            newList.add(PackData(id, name))
+        }
+
+        return newList
     }
 }

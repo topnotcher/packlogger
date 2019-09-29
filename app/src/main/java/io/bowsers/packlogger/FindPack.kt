@@ -11,6 +11,8 @@ import android.widget.AutoCompleteTextView
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+import com.google.api.services.sheets.v4.SheetsScopes
 import java.util.*
 
 
@@ -30,7 +32,13 @@ class FindPack : Fragment() {
         super.onActivityCreated(savedInstanceState)
 
         if (adapter == null) {
-            adapter = PackNameCompleter(context!!, R.layout.support_simple_spinner_dropdown_item)
+            val scopes = listOf(SheetsScopes.SPREADSHEETS)
+            val credential =
+                GoogleAccountCredential.usingOAuth2(activity!!.applicationContext, scopes)
+            val aacount = (activity!! as MainActivity).account?.account
+
+            credential!!.selectedAccount = aacount
+            adapter = PackNameCompleter(context!!, R.layout.support_simple_spinner_dropdown_item, credential)
 
             val tv: AutoCompleteTextView = activity!!.findViewById(R.id.pack_search_str)
             tv.setAdapter(adapter)

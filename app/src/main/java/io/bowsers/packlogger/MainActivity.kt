@@ -24,8 +24,8 @@ class MainActivity : FragmentActivity(), MainFragment.OnFragmentInteractionListe
     companion object {
         private const val REQUEST_SIGN_IN = 1
         private val main = MainFragment()
-        private var account: GoogleSignInAccount? = null
     }
+    var account: GoogleSignInAccount? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
