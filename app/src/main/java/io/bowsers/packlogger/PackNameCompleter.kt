@@ -2,6 +2,7 @@ package io.bowsers.packlogger
 
 import android.content.Context
 import android.os.AsyncTask
+import android.util.JsonToken
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,10 +11,13 @@ import android.widget.Filter
 import android.widget.Filterable
 import android.widget.TextView
 import androidx.lifecycle.MutableLiveData
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.sheets.v4.Sheets
+import java.io.*
+import java.nio.file.Paths
 import java.util.*
 
 class PackNameCompleter(
@@ -22,32 +26,38 @@ class PackNameCompleter(
     private val credential: GoogleAccountCredential?
 ) : BaseAdapter(), Filterable {
 
-    private data class PackData(val id: Int, val name: String)
-    private var resultList = ArrayList<PackData>()
-    //private var packList = arrayOf(
-        //PackData(1, "Trident"),
-        //PackData(2, "Blade"),
-        //PackData(3, "Talon"),
-        //PackData(4, "Umbriel"),
-        //PackData(5, "Oberon")
-    //)
-
-    private val packs: MutableLiveData<List<PackData>> by lazy {
-        MutableLiveData<List<PackData>>().also {
-            loadPacks()
-        }
+    private data class PackData(var id: Int, var name: String) {
+        constructor() : this(0, "N/A")
     }
+    private data class CacheData(var timestamp: Long, var data: Array<PackData>) {
+        constructor() : this(0, arrayOf())
+    }
+
+    private var resultList = ArrayList<PackData>()
+
+    private val cacheFile: File by lazy {
+        File(arrayOf(context.cacheDir.toString(), "packlist.json").joinToString(File.separator))
+    }
+
+    private var packs: List<PackData>? = null
+    //init {
+        //packs
+            //.observe(this, Observer<List<ShowPacksViewModel.PackData>> { packs ->
+                //updatePacks(packs)
+            //})
+//
+    //}
 
     override fun getCount(): Int {
         return resultList.size
     }
 
     override fun getItem(position: Int) : String {
-        return resultList[position].name
+        return resultList[position].name!!
     }
 
     override fun getItemId(position: Int) : Long {
-        return resultList[position].id.toLong()
+        return resultList[position].id!!.toLong()
     }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
@@ -66,9 +76,13 @@ class PackNameCompleter(
                     // initial size >= 2: there are at most two packs that start with any given letter.
                     val list = ArrayList<PackData>(4)
 
-                    if (packs.value != null) {
-                        packs.value!!.forEach {
-                            if (constraint != null && it.name.toLowerCase().startsWith(constraint.toString().toLowerCase())) {
+                    if (packs == null) {
+                        loadPacks()
+                    }
+
+                    if (packs != null) {
+                        packs!!.forEach {
+                            if (constraint != null && it.name!!.toLowerCase().startsWith(constraint.toString().toLowerCase())) {
                                 list.add(it)
                             }
                         }
@@ -82,24 +96,41 @@ class PackNameCompleter(
             override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
                 if ((results?.count ?: 0) > 0) {
                     resultList = results!!.values as ArrayList<PackData>
-                    notifyDataSetChanged()
-                } else {
-                    notifyDataSetInvalidated()
                 }
             }
         }
     }
 
     private fun loadPacks() {
-        object: AsyncTask<String, Int, List<PackData>>() {
-            override fun doInBackground(vararg params: String?): List<PackData> {
-                return loadPacksForReal()
+        val cached = readCache()
+        var result: List<PackData>? = null
+
+        if (cached != null) {
+            val newPacks = ArrayList<PackData>(cached!!.data.size)
+            newPacks.addAll(cached.data)
+            packs = newPacks
+            notifyDataSetChanged()
+
+            // fire the async task, but don't wait
+            if (3601 - cached.timestamp > 3600) {
+                updatePackData()
             }
 
-            override fun onPostExecute(result: List<PackData>) {
-                super.onPostExecute(result)
-                if (result != null)
-                    packs.postValue(result)
+        } else {
+            // No cache: we need to load the data now. get() waits for the result.
+            updatePackData().get()
+        }
+    }
+
+    private fun updatePackData() : AsyncTask<String, Int, List<PackData>> {
+        return object : AsyncTask<String, Int, List<PackData>>() {
+            override fun doInBackground(vararg params: String?): List<PackData>? {
+                val result = loadPacksForReal()
+                updateCache(result)
+                packs = result
+                notifyDataSetChanged()
+
+                return result
             }
         }.execute()
     }
@@ -128,5 +159,52 @@ class PackNameCompleter(
         }
 
         return newList
+    }
+
+    private fun updateCache(cacheList: List<PackData>) {
+        val tmpFile = File("${cacheFile}.tmp")
+
+        if (tmpFile.exists()) {
+            tmpFile.delete()
+        }
+
+        val writer = BufferedWriter(FileWriter(tmpFile))
+        val gen = JacksonFactory.getDefaultInstance().createJsonGenerator(writer)
+        gen.writeStartObject()
+        gen.writeFieldName("timestamp")
+        gen.writeNumber(0)
+
+        gen.writeFieldName("data")
+        gen.writeStartArray()
+        cacheList.forEach{
+            gen.writeStartObject()
+
+            gen.writeFieldName("id")
+            gen.writeNumber(it.id!!)
+
+            gen.writeFieldName("name")
+            gen.writeString(it.name)
+
+            gen.writeEndObject()
+        }
+        gen.writeEndArray()
+        gen.writeEndObject()
+        gen.close()
+
+        tmpFile.renameTo(cacheFile)
+    }
+
+    private fun readCache(): CacheData? {
+        var cached: CacheData? = null
+        if (cacheFile.exists()) {
+            try {
+                val mapper = ObjectMapper()
+                cached = mapper.readValue(cacheFile, CacheData::class.java)
+            } catch (e: IOException) {
+               e.printStackTrace()
+            }
+        }
+
+        return cached
     }
 }
