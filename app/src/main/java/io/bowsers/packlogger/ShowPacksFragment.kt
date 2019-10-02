@@ -52,6 +52,8 @@ class ShowPacksFragment : Fragment() {
 
             viewModel.setCredential(credential)
             viewModel.setSelection(selection)
+            if (context != null)
+                viewModel.setCacheDirectory(context!!.cacheDir)
 
         }
 

@@ -12,14 +12,19 @@ import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.sheets.v4.Sheets
 import com.google.api.services.sheets.v4.SheetsScopes
+import io.bowsers.packlogger.SheetsCollectionLoader.Query.ColumnType
+import java.io.File
 import java.util.*
 
 class ShowPacksViewModel : ViewModel() {
-    data class PackData (val id: Int, val name: String, val rating: Double, val date: String)
+    data class PackData (var id: Int, var name: String, var rating: Double, var date: String) {
+        constructor(): this(0, "N/A", 0.0, "1/1/1970")
+    }
 
     private var credential: GoogleAccountCredential? = null
     private var selection: String? = null
     private var packList: List<PackData> = LinkedList()
+    private var cacheDir: File? = null
 
     val packs: MutableLiveData<List<PackData>> by lazy {
         MutableLiveData<List<PackData>>().also {
@@ -40,6 +45,10 @@ class ShowPacksViewModel : ViewModel() {
         this.selection = selection
     }
 
+    fun setCacheDirectory(dir: File) {
+        cacheDir = dir
+    }
+
     fun getPacks(): LiveData<List<PackData>> {
         return packs
     }
@@ -58,50 +67,25 @@ class ShowPacksViewModel : ViewModel() {
         }.execute("foo")
       }
 
-        //packList.clear()
 
-        //for (i in 1..10) {
-         //  packList.add(i)
-        //}
-
+    //private val cacheFile: File by lazy {
+        //File(arrayOf(context.cacheDir.toString(), "packlist.json").joinToString(File.separator))
+    //}
     private fun loadPacksForReal() : List<PackData> {
-        val spreadsheetId = "1G8EOexvxcP6n86BQsORNtwxsgpRT-VPrZt07NOZ-q-Q"
-        val jsonFactory = JacksonFactory.getDefaultInstance()
-        //GoogleNetHttpTransport.newTrustedTransport()
-        val httpTransport = NetHttpTransport()
-        val service = Sheets.Builder(httpTransport, jsonFactory, credential)
-            .setApplicationName("PackLogger")  // TODO
-            .build()
-        //.setApplicationName(getString(R.string.app_name))
         var range: String
-
         if (selection == "top_packs") {
             range = "TOP!A2:D"
         } else {
             range = "ALL!A2:D"
         }
 
-        val response = service.Spreadsheets().values().get(spreadsheetId, range).execute()
-        val values: List<List<Any>> = response.getValues()
-
-        val newList = LinkedList<PackData>()
-
-        values.forEach { row ->
-            val id = (row[0] as String).toInt()
-            val name = row[1] as String
-
-            var rating: Double
-            var date: String
-            if (row.size >= 4) {
-                rating = (row[2] as String).toDouble()
-                date = row[3] as String
-            } else {
-                rating = 0.0
-                date = ""
+        return SheetsCollectionLoader(credential).query(range).apply {
+            columnTypes(ColumnType.INT, ColumnType.STRING, ColumnType.DOUBLE, ColumnType.STRING)
+            unpackRows(PackData::class.java as Class<Any>, "id", "name", "rating", "date")
+            if (cacheDir != null) {
+                val cacheFile = File(arrayOf(cacheDir.toString(), "showpacks-${selection}.json").joinToString(File.separator))
+                withCache(cacheFile, 1200)
             }
-
-            newList.add(PackData(id, name, rating, date))
-        }
-        return newList
+        }.execute() as List<PackData>
     }
 }

@@ -48,9 +48,10 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.0.0'
 
 
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.8.5'
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.8.5'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.8.5'
+    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+'
+    //implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.+'
+    //implementation 'com.fasterxml.jackson.core:jackson-core:2.8.5'
+    //implementation 'com.fasterxml.jackson.core:jackson-annotations:2.8.5'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
