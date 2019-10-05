@@ -42,7 +42,6 @@ class FindPack : Fragment() {
         viewModel = ViewModelProviders.of(this).get(PackList::class.java)
 
         viewModel!!.setLoader((activity!! as MainActivity).sheetsLoader)
-        viewModel!!.setCacheDirectory(context!!.cacheDir)
 
         adapter =
             PackNameCompleter(context!!, R.layout.support_simple_spinner_dropdown_item, viewModel!!::getDataSynchronous)

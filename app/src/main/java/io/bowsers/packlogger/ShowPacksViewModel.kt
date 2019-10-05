@@ -22,7 +22,6 @@ class ShowPacksViewModel : ViewModel() {
     }
 
     private var selection: String? = null
-    private var cacheDir: File? = null
     private var loader: SheetsCollectionLoader? = null
 
     private val packs: MutableLiveData<List<PackData>> by lazy {
@@ -42,10 +41,6 @@ class ShowPacksViewModel : ViewModel() {
 
     fun setLoader(loader: SheetsCollectionLoader) {
         this.loader = loader
-    }
-
-    fun setCacheDirectory(dir: File) {
-        cacheDir = dir
     }
 
     fun getPacks(): LiveData<List<PackData>> {
@@ -73,10 +68,7 @@ class ShowPacksViewModel : ViewModel() {
         return loader!!.query<PackData>(range).apply {
             columnTypes(ColumnType.INT, ColumnType.STRING, ColumnType.DOUBLE, ColumnType.STRING)
             unpackRows(PackData::class.java, "id", "name", "rating", "date")
-            if (cacheDir != null) {
-                val cacheFile = File(arrayOf(cacheDir.toString(), "showpacks-${selection}.json").joinToString(File.separator))
-                withCache(cacheFile, 1200)
-            }
+            withCache("showpacks-${selection}", 1200)
         }.setResultCallback(this::postValue)
     }
 }

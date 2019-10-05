@@ -111,7 +111,9 @@ class MainActivity : FragmentActivity(), MainFragment.OnFragmentInteractionListe
                 GoogleAccountCredential.usingOAuth2(applicationContext, scopes)
             credential!!.selectedAccount = lAccount.account
 
-            return SheetsCollectionLoader(credential)
+            return SheetsCollectionLoader(credential).apply{
+                setCacheDir(applicationContext.cacheDir)
+            }
 
         } else {
             throw IllegalStateException()

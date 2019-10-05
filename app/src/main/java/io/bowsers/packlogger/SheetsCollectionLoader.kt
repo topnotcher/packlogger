@@ -15,6 +15,7 @@ import kotlin.reflect.full.memberProperties
 
 class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
     val SPREADSHEET_ID = "1G8EOexvxcP6n86BQsORNtwxsgpRT-VPrZt07NOZ-q-Q"
+    private var cacheDir: File? = null
 
 
     private class Cache(val cacheFile: File, val lifetime: Long) {
@@ -108,8 +109,17 @@ class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
             return this
         }
 
-        fun withCache(cacheFile: File, lifetime: Long) : Query<T> {
-            cache = Cache(cacheFile, lifetime)
+        fun withCache(cacheKey: String, lifetime: Long) : Query<T> {
+            val cacheDir = loader.cacheDir
+            if (cacheDir != null) {
+                val cacheFile = File(
+                    arrayOf(
+                        cacheDir.toString(),
+                        "${cacheKey}.json"
+                    ).joinToString(File.separator)
+                )
+                cache = Cache(cacheFile, lifetime)
+            }
             return this
         }
 
@@ -243,5 +253,9 @@ class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
 
         val response = service.Spreadsheets().values().get(SPREADSHEET_ID, range).execute()
         return response.getValues()
+    }
+
+    fun setCacheDir(cacheDir: File) {
+        this.cacheDir = cacheDir
     }
 }

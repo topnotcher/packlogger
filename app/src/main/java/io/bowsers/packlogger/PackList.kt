@@ -19,17 +19,9 @@ class PackList : ViewModel() {
     }
 
     private var loader: SheetsCollectionLoader? = null
-    private var cacheDir: File? = null
-    private val cacheFile: File by lazy {
-        File(arrayOf(cacheDir.toString(), "packlist.json").joinToString(File.separator))
-    }
 
     fun setLoader(loader: SheetsCollectionLoader) {
         this.loader = loader
-    }
-
-    fun setCacheDirectory(cacheDir: File) {
-        this.cacheDir = cacheDir
     }
 
     fun getPacks(): LiveData<List<PackData>> {
@@ -52,7 +44,7 @@ class PackList : ViewModel() {
                 SheetsCollectionLoader.Query.ColumnType.STRING
             )
             unpackRows(PackData::class.java, "id", "name")
-            withCache(cacheFile, 3600)
+            withCache("packlist", 3600)
         }.setResultCallback(this::postValue)
     }
 

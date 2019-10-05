@@ -44,8 +44,6 @@ class ShowPacksFragment : Fragment() {
 
         viewModel.setLoader((activity as MainActivity)!!.sheetsLoader)
         viewModel.setSelection(selection)
-        if (context != null)
-            viewModel.setCacheDirectory(context!!.cacheDir)
 
         if (table == null) {
             val padVertical = 30
