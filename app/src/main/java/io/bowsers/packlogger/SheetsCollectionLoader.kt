@@ -1,5 +1,6 @@
 package io.bowsers.packlogger
 
+import android.os.AsyncTask
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
@@ -12,18 +13,19 @@ import java.util.*
 import kotlin.reflect.*
 import kotlin.reflect.full.memberProperties
 
-class SheetsCollectionLoader<T>(private val credential: GoogleAccountCredential?) {
+class SheetsCollectionLoader<T: Any>(private val credential: GoogleAccountCredential?) {
     val SPREADSHEET_ID = "1G8EOexvxcP6n86BQsORNtwxsgpRT-VPrZt07NOZ-q-Q"
 
 
     private class Cache(val cacheFile: File, val lifetime: Long) {
 
         data class CachedData(var timestamp: Long, var data: List<List<Any>>?) {
-            var lifetime: Long = 0
             constructor() : this(0, null)
+        }
 
-            val expired: Boolean
-                get() = (System.currentTimeMillis() / 1000 - timestamp) > lifetime
+        data class CacheResult(var cache: CachedData, val lifetime: Long) {
+            val expired get() = (System.currentTimeMillis() / 1000 - cache.timestamp) > lifetime
+            val data = cache.data
         }
 
         val exists: Boolean get() = cacheFile.exists()
@@ -42,28 +44,42 @@ class SheetsCollectionLoader<T>(private val credential: GoogleAccountCredential?
             tmpFile.renameTo(cacheFile)
         }
 
-        fun getCache(): CachedData? {
-            var data: CachedData? = null
+        fun getCache(): CacheResult? {
+            var result: CacheResult? = null
             if (exists) {
                 try {
                     jacksonObjectMapper().apply {
-                        data = readValue(cacheFile)
+                        result = CacheResult(readValue(cacheFile), lifetime)
                     }
-                    if (data != null) {
-                       data!!.lifetime = lifetime
-                    }
-                } catch (e: IOException) {
+                } catch (e: Exception) {
                     e.printStackTrace()
                     cacheFile.delete()
                 }
             }
 
 
-            return data
+            return result
         }
     }
 
-    class Query<T>(private val loader: SheetsCollectionLoader<T>,  private val range: String) {
+    private class LoadTask<T: Any> : AsyncTask<Query<T>, Int, List<T>>() {
+        override fun doInBackground(vararg params: Query<T>?): List<T>? {
+            var result: List<T>? = null
+
+            if (params.size == 1 && params[0] != null) {
+                try {
+                    result = params[0]!!.executeForReal()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            return result
+        }
+    }
+
+    class Query<T: Any>(private val loader: SheetsCollectionLoader<T>,  private val range: String) {
+
         enum class ColumnType {
             INT,
             LONG,
@@ -73,7 +89,7 @@ class SheetsCollectionLoader<T>(private val credential: GoogleAccountCredential?
         }
 
         private var mappedTypes: List<ColumnType>? = null
-        private var mappedRowType: Class<Any>? = null
+        private var mappedRowType: Class<T>? = null
         private var mappedFieldNames: List<String>? = null
         private var cache: Cache? = null
         private var resultCallback: ((List<T>) -> Unit)? = null
@@ -86,7 +102,7 @@ class SheetsCollectionLoader<T>(private val credential: GoogleAccountCredential?
             return this
         }
 
-        fun unpackRows(clazz: Class<Any>, vararg names: String) : Query<T> {
+        fun unpackRows(clazz: Class<T>, vararg names: String) : Query<T> {
             rowType(clazz)
             columnNames(*names)
             return this
@@ -102,8 +118,9 @@ class SheetsCollectionLoader<T>(private val credential: GoogleAccountCredential?
             return this
         }
 
-        private fun rowType(clazz: Class<Any>, vararg names: String) {
+        private fun rowType(clazz: Class<T>, vararg names: String) {
             mappedRowType = clazz
+            columnNames(*names)
         }
 
         private fun columnNames(vararg names: String) {
@@ -112,10 +129,18 @@ class SheetsCollectionLoader<T>(private val credential: GoogleAccountCredential?
             mappedFieldNames = out
         }
 
+        fun executeInBackground() {
+            LoadTask<T>().execute(this)
+        }
+
         fun execute() : List<T> {
+            return LoadTask<T>().execute(this).get()
+        }
+
+        fun executeForReal() : List<T> {
             var data: List<T>? = null
             val cached = cache?.getCache()
-            var doLoad: Boolean = false
+            var doLoad = false
 
             if (cached != null) {
                 val cachedData = cached.data
@@ -123,7 +148,7 @@ class SheetsCollectionLoader<T>(private val credential: GoogleAccountCredential?
                     data = processData(cachedData)
                 }
 
-                doLoad = !cached.expired
+                doLoad = cached.expired
             }
 
             if (data == null || doLoad) {
@@ -147,7 +172,7 @@ class SheetsCollectionLoader<T>(private val credential: GoogleAccountCredential?
                     convertDataTypes(values)
 
                 if (mappedFieldNames != null && mappedRowType != null) {
-                    it.set(convertRowType(values))
+                    it.set(convertRowType(values) as Any)
                 }
             }
 
@@ -185,8 +210,8 @@ class SheetsCollectionLoader<T>(private val credential: GoogleAccountCredential?
             }
         }
 
-        private fun convertRowType(values: List<Any>) : Any {
-            val obj = mappedRowType!!.newInstance()
+        private fun convertRowType(values: List<Any>) : T {
+            val obj: T = mappedRowType!!.newInstance()
 
             val nit = mappedFieldNames!!.iterator()
             val vit = values.iterator()
@@ -195,10 +220,11 @@ class SheetsCollectionLoader<T>(private val credential: GoogleAccountCredential?
                 val colName = nit.next()
                 val value = vit.next()
 
-                val prop = obj::class.memberProperties.find {it.name == colName}
+                val prop = obj::class.memberProperties.find { it.name == colName }
                 if (prop is KMutableProperty<*>)
                     prop.setter.call(obj, value)
             }
+
 
             return obj
         }
