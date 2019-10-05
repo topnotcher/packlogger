@@ -18,14 +18,14 @@ class PackList : ViewModel() {
         }
     }
 
-    private var credential: GoogleAccountCredential? = null
+    private var loader: SheetsCollectionLoader? = null
     private var cacheDir: File? = null
     private val cacheFile: File by lazy {
         File(arrayOf(cacheDir.toString(), "packlist.json").joinToString(File.separator))
     }
 
-    fun setCredential(credential: GoogleAccountCredential?) {
-        this.credential = credential
+    fun setLoader(loader: SheetsCollectionLoader) {
+        this.loader = loader
     }
 
     fun setCacheDirectory(cacheDir: File) {
@@ -46,7 +46,7 @@ class PackList : ViewModel() {
 
     private fun buildQuery() : SheetsCollectionLoader.Query<PackData> {
         val range = "all-packs!A2:B"
-        return SheetsCollectionLoader(credential).query<PackData>(range).apply {
+        return loader!!.query<PackData>(range).apply {
             columnTypes(
                 SheetsCollectionLoader.Query.ColumnType.INT,
                 SheetsCollectionLoader.Query.ColumnType.STRING

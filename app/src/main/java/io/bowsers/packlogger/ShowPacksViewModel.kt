@@ -21,9 +21,9 @@ class ShowPacksViewModel : ViewModel() {
         constructor(): this(0, "N/A", 0.0, "")
     }
 
-    private var credential: GoogleAccountCredential? = null
     private var selection: String? = null
     private var cacheDir: File? = null
+    private var loader: SheetsCollectionLoader? = null
 
     private val packs: MutableLiveData<List<PackData>> by lazy {
         MutableLiveData<List<PackData>>().also {
@@ -36,12 +36,12 @@ class ShowPacksViewModel : ViewModel() {
         const val SELECT_ALL_PACKS: String = "all_packs"
     }
 
-    fun setCredential(credential : GoogleAccountCredential?) {
-        this.credential = credential
-    }
-
     fun setSelection(selection: String?) {
         this.selection = selection
+    }
+
+    fun setLoader(loader: SheetsCollectionLoader) {
+        this.loader = loader
     }
 
     fun setCacheDirectory(dir: File) {
@@ -70,7 +70,7 @@ class ShowPacksViewModel : ViewModel() {
             range = "ALL!A2:D"
         }
 
-        return SheetsCollectionLoader(credential).query<PackData>(range).apply {
+        return loader!!.query<PackData>(range).apply {
             columnTypes(ColumnType.INT, ColumnType.STRING, ColumnType.DOUBLE, ColumnType.STRING)
             unpackRows(PackData::class.java, "id", "name", "rating", "date")
             if (cacheDir != null) {

@@ -41,13 +41,7 @@ class FindPack : Fragment() {
         super.onActivityCreated(saved)
         viewModel = ViewModelProviders.of(this).get(PackList::class.java)
 
-        val scopes = listOf(SheetsScopes.SPREADSHEETS)
-        val credential =
-            GoogleAccountCredential.usingOAuth2(activity!!.applicationContext, scopes)
-        val aacount = (activity!! as MainActivity).account?.account
-        credential!!.selectedAccount = aacount
-
-        viewModel!!.setCredential(credential)
+        viewModel!!.setLoader((activity!! as MainActivity).sheetsLoader)
         viewModel!!.setCacheDirectory(context!!.cacheDir)
 
         adapter =

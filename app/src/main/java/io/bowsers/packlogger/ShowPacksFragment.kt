@@ -28,7 +28,6 @@ class ShowPacksFragment : Fragment() {
 
         arguments?.let {
             selection = it.getString(SELECTION)
-            account = it.getParcelable(ACCOUNT)
         }
     }
 
@@ -43,13 +42,7 @@ class ShowPacksFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(ShowPacksViewModel::class.java)
 
-        val scopes = listOf(SheetsScopes.SPREADSHEETS)
-        val credential =
-            GoogleAccountCredential.usingOAuth2(activity!!.applicationContext, scopes)
-        val aacount = account!!.account
-        credential!!.selectedAccount = aacount
-
-        viewModel.setCredential(credential)
+        viewModel.setLoader((activity as MainActivity)!!.sheetsLoader)
         viewModel.setSelection(selection)
         if (context != null)
             viewModel.setCacheDirectory(context!!.cacheDir)
@@ -92,12 +85,10 @@ class ShowPacksFragment : Fragment() {
     }
 
     private var selection: String? = null
-    private var account: GoogleSignInAccount? = null
     private var table: DataTable? = null
 
     companion object {
         private const val SELECTION = "SELECT"
-        private const val ACCOUNT = "ACCOUNT"
 
         /**
          * Use this factory method to create a new instance of
@@ -107,11 +98,10 @@ class ShowPacksFragment : Fragment() {
          * @return A new instance of fragment MainFragment.
          */
         @JvmStatic
-        fun newInstance(selection: String, account: GoogleSignInAccount??) =
+        fun newInstance(selection: String) =
             ShowPacksFragment().apply {
                 arguments = Bundle().apply {
                     putString(SELECTION, selection)
-                    putParcelable(ACCOUNT, account)
                 }
             }
     }
