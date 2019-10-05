@@ -36,7 +36,7 @@ class PackList : ViewModel() {
         return packs
     }
 
-    fun getDataSychronous(): List<PackData> {
+    fun getDataSynchronous(): List<PackData> {
         return buildQuery().execute()
     }
 

@@ -52,7 +52,7 @@ class FindPack : Fragment() {
         viewModel!!.setCacheDirectory(context!!.cacheDir)
 
         adapter =
-            PackNameCompleter(context!!, R.layout.support_simple_spinner_dropdown_item, viewModel!!::getDataSychronous)
+            PackNameCompleter(context!!, R.layout.support_simple_spinner_dropdown_item, viewModel!!::getDataSynchronous)
         val tv: AutoCompleteTextView = activity!!.findViewById(R.id.pack_search_str)
         tv.setAdapter(adapter)
         tv.threshold = 1
