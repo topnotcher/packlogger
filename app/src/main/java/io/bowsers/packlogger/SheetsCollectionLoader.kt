@@ -13,7 +13,7 @@ import java.util.*
 import kotlin.reflect.*
 import kotlin.reflect.full.memberProperties
 
-class SheetsCollectionLoader<T: Any>(private val credential: GoogleAccountCredential?) {
+class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
     val SPREADSHEET_ID = "1G8EOexvxcP6n86BQsORNtwxsgpRT-VPrZt07NOZ-q-Q"
 
 
@@ -62,23 +62,23 @@ class SheetsCollectionLoader<T: Any>(private val credential: GoogleAccountCreden
         }
     }
 
-    private class LoadTask<T: Any> : AsyncTask<Query<T>, Int, List<T>>() {
-        override fun doInBackground(vararg params: Query<T>?): List<T>? {
-            var result: List<T>? = null
+    class Query<T: Any>(private val loader: SheetsCollectionLoader,  private val range: String) {
 
-            if (params.size == 1 && params[0] != null) {
-                try {
-                    result = params[0]!!.executeForReal()
-                } catch (e: Exception) {
-                    e.printStackTrace()
+        private class LoadTask<T: Any> : AsyncTask<Query<T>, Int, List<T>>() {
+            override fun doInBackground(vararg params: Query<T>?): List<T>? {
+                var result: List<T>? = null
+
+                if (params.size == 1 && params[0] != null) {
+                    try {
+                        result = params[0]!!.executeForReal()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
+
+                return result
             }
-
-            return result
         }
-    }
-
-    class Query<T: Any>(private val loader: SheetsCollectionLoader<T>,  private val range: String) {
 
         enum class ColumnType {
             INT,
@@ -230,7 +230,7 @@ class SheetsCollectionLoader<T: Any>(private val credential: GoogleAccountCreden
         }
     }
 
-    fun query(range: String) : Query<T> {
+    fun <T: Any> query(range: String) : Query<T> {
         return Query(this, range)
     }
 

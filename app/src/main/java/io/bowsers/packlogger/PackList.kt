@@ -46,7 +46,7 @@ class PackList : ViewModel() {
 
     private fun buildQuery() : SheetsCollectionLoader.Query<PackData> {
         val range = "all-packs!A2:B"
-        return SheetsCollectionLoader<PackData>(credential).query(range).apply {
+        return SheetsCollectionLoader(credential).query<PackData>(range).apply {
             columnTypes(
                 SheetsCollectionLoader.Query.ColumnType.INT,
                 SheetsCollectionLoader.Query.ColumnType.STRING

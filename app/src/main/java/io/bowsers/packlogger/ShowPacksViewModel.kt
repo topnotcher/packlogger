@@ -70,7 +70,7 @@ class ShowPacksViewModel : ViewModel() {
             range = "ALL!A2:D"
         }
 
-        return SheetsCollectionLoader<PackData>(credential).query(range).apply {
+        return SheetsCollectionLoader(credential).query<PackData>(range).apply {
             columnTypes(ColumnType.INT, ColumnType.STRING, ColumnType.DOUBLE, ColumnType.STRING)
             unpackRows(PackData::class.java, "id", "name", "rating", "date")
             if (cacheDir != null) {
