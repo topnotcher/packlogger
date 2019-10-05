@@ -12,13 +12,18 @@ import java.util.*
 import kotlin.reflect.*
 import kotlin.reflect.full.memberProperties
 
-class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
+class SheetsCollectionLoader<T>(private val credential: GoogleAccountCredential?) {
     val SPREADSHEET_ID = "1G8EOexvxcP6n86BQsORNtwxsgpRT-VPrZt07NOZ-q-Q"
 
 
     private class Cache(val cacheFile: File, val lifetime: Long) {
+
         data class CachedData(var timestamp: Long, var data: List<List<Any>>?) {
+            var lifetime: Long = 0
             constructor() : this(0, null)
+
+            val expired: Boolean
+                get() = (System.currentTimeMillis() / 1000 - timestamp) > lifetime
         }
 
         val exists: Boolean get() = cacheFile.exists()
@@ -44,10 +49,9 @@ class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
                     jacksonObjectMapper().apply {
                         data = readValue(cacheFile)
                     }
-
-                    if (System.currentTimeMillis() / 1000 - (data?.timestamp?:0) > lifetime)
-                        data = null
-
+                    if (data != null) {
+                       data!!.lifetime = lifetime
+                    }
                 } catch (e: IOException) {
                     e.printStackTrace()
                     cacheFile.delete()
@@ -59,7 +63,7 @@ class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
         }
     }
 
-    class Query(private val loader: SheetsCollectionLoader,  private val range: String) {
+    class Query<T>(private val loader: SheetsCollectionLoader<T>,  private val range: String) {
         enum class ColumnType {
             INT,
             LONG,
@@ -72,8 +76,9 @@ class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
         private var mappedRowType: Class<Any>? = null
         private var mappedFieldNames: List<String>? = null
         private var cache: Cache? = null
+        private var resultCallback: ((List<T>) -> Unit)? = null
 
-       fun columnTypes(vararg types: ColumnType) : Query {
+       fun columnTypes(vararg types: ColumnType) : Query<T> {
             val newTypes = ArrayList<ColumnType>(types.size)
             newTypes.addAll(types)
             mappedTypes = newTypes
@@ -81,14 +86,19 @@ class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
             return this
         }
 
-        fun unpackRows(clazz: Class<Any>, vararg names: String) : Query{
+        fun unpackRows(clazz: Class<Any>, vararg names: String) : Query<T> {
             rowType(clazz)
             columnNames(*names)
             return this
         }
 
-        fun withCache(cacheFile: File, lifetime: Long) : Query {
+        fun withCache(cacheFile: File, lifetime: Long) : Query<T> {
             cache = Cache(cacheFile, lifetime)
+            return this
+        }
+
+        fun setResultCallback(callback: (List<T>) -> Unit) : Query<T> {
+            resultCallback = callback
             return this
         }
 
@@ -102,9 +112,32 @@ class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
             mappedFieldNames = out
         }
 
-        fun execute() : List<Any> {
-            val data = ensureMutable(loadData()) as MutableList<Any>
-            val it = data.listIterator()
+        fun execute() : List<T> {
+            var data: List<T>? = null
+            val cached = cache?.getCache()
+            var doLoad: Boolean = false
+
+            if (cached != null) {
+                val cachedData = cached.data
+                if (cachedData != null) {
+                    data = processData(cachedData)
+                }
+
+                doLoad = !cached.expired
+            }
+
+            if (data == null || doLoad) {
+                val freshData = loader.getData(range)
+                cache?.apply{update(freshData)}
+
+                data = processData(freshData)
+            }
+
+            return data
+        }
+
+        private fun processData(data: List<List<Any>>) : List<T> {
+            val it = (ensureMutable(data) as MutableList<Any>).listIterator()
 
             while (it.hasNext()) {
                 val values = ensureMutable(it.next() as List<Any>)
@@ -116,28 +149,14 @@ class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
                 if (mappedFieldNames != null && mappedRowType != null) {
                     it.set(convertRowType(values))
                 }
-
             }
 
-            return data
+            val result = data as List<T>
+            resultCallback?.invoke(result)
+            return result
         }
 
-        private fun loadData(): List<List<Any>> {
-            var data: List<List<Any>>? = null
-            val cached = cache?.getCache()
-
-            if (cached != null)
-                data = cached.data
-
-            if (data == null) {
-                data = loader.getData(range)
-                cache?.apply{update(data)}
-            }
-
-            return data
-        }
-
-        private inline fun <reified T> ensureMutable(list: List<T>) : MutableList<T> {
+        private fun <S> ensureMutable(list: List<S>) : MutableList<S> {
             return when (list) {
                 is MutableList -> list
                 else -> ArrayList(list)
@@ -185,7 +204,7 @@ class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
         }
     }
 
-    fun query(range: String) : Query {
+    fun query(range: String) : Query<T> {
         return Query(this, range)
     }
 

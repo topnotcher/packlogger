@@ -18,15 +18,36 @@ import java.util.*
 
 class ShowPacksViewModel : ViewModel() {
     data class PackData (var id: Int, var name: String, var rating: Double, var date: String) {
-        constructor(): this(0, "N/A", 0.0, "1/1/1970")
+        constructor(): this(0, "N/A", 0.0, "")
+    }
+
+    private class LoadRequest<T>(private val query: SheetsCollectionLoader.Query<T>, private val resultCallback: (T) -> Unit) {
+        fun postResult(result: T) {
+            resultCallback(result)
+        }
+
+        fun execute() : T {
+            return query.execute() as T
+        }
+    }
+
+    private class LoadTask<T> : AsyncTask<SheetsCollectionLoader.Query<T>, Int, List<T>>() {
+        override fun doInBackground(vararg params: SheetsCollectionLoader.Query<T>?): List<T>? {
+            var result: List<T>? = null
+
+            if (params.size == 1 && params[0] != null) {
+                result = params[0]!!.execute()
+            }
+
+            return result
+        }
     }
 
     private var credential: GoogleAccountCredential? = null
     private var selection: String? = null
-    private var packList: List<PackData> = LinkedList()
     private var cacheDir: File? = null
 
-    val packs: MutableLiveData<List<PackData>> by lazy {
+    private val packs: MutableLiveData<List<PackData>> by lazy {
         MutableLiveData<List<PackData>>().also {
             loadPacks()
         }
@@ -54,24 +75,16 @@ class ShowPacksViewModel : ViewModel() {
     }
 
     private fun loadPacks() {
-        object: AsyncTask<String, Int, List<PackData>>() {
-            override fun doInBackground(vararg params: String?): List<PackData> {
-                return loadPacksForReal()
-            }
+        LoadTask<PackData>().execute(buildQuery())
+    }
 
-            override fun onPostExecute(result: List<PackData>) {
-                super.onPostExecute(result)
-                if (packList != null)
-                    packs.postValue(result)
-            }
-        }.execute("foo")
-      }
+    private fun postValue(result: List<PackData>) {
+        // We need this function because we can't pass packs::postValue in in loadPacks: packs is
+        // lazy initialized and loadPacks is the initializer. This causes infinite recursion.
+        packs.postValue(result)
+    }
 
-
-    //private val cacheFile: File by lazy {
-        //File(arrayOf(context.cacheDir.toString(), "packlist.json").joinToString(File.separator))
-    //}
-    private fun loadPacksForReal() : List<PackData> {
+    private fun buildQuery() : SheetsCollectionLoader.Query<PackData> {
         var range: String
         if (selection == "top_packs") {
             range = "TOP!A2:D"
@@ -79,13 +92,13 @@ class ShowPacksViewModel : ViewModel() {
             range = "ALL!A2:D"
         }
 
-        return SheetsCollectionLoader(credential).query(range).apply {
+        return SheetsCollectionLoader<PackData>(credential).query(range).apply {
             columnTypes(ColumnType.INT, ColumnType.STRING, ColumnType.DOUBLE, ColumnType.STRING)
             unpackRows(PackData::class.java as Class<Any>, "id", "name", "rating", "date")
             if (cacheDir != null) {
                 val cacheFile = File(arrayOf(cacheDir.toString(), "showpacks-${selection}.json").joinToString(File.separator))
                 withCache(cacheFile, 1200)
             }
-        }.execute() as List<PackData>
+        }.setResultCallback(this::postValue)
     }
 }
