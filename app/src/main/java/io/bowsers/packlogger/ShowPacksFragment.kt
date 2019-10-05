@@ -43,19 +43,16 @@ class ShowPacksFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(ShowPacksViewModel::class.java)
 
-        if (savedInstanceState == null) {
-            val scopes = listOf(SheetsScopes.SPREADSHEETS)
-            val credential =
-                GoogleAccountCredential.usingOAuth2(activity!!.applicationContext, scopes)
-            val aacount = account!!.account
-            credential!!.selectedAccount = aacount
+        val scopes = listOf(SheetsScopes.SPREADSHEETS)
+        val credential =
+            GoogleAccountCredential.usingOAuth2(activity!!.applicationContext, scopes)
+        val aacount = account!!.account
+        credential!!.selectedAccount = aacount
 
-            viewModel.setCredential(credential)
-            viewModel.setSelection(selection)
-            if (context != null)
-                viewModel.setCacheDirectory(context!!.cacheDir)
-
-        }
+        viewModel.setCredential(credential)
+        viewModel.setSelection(selection)
+        if (context != null)
+            viewModel.setCacheDirectory(context!!.cacheDir)
 
         if (table == null) {
             val padVertical = 30

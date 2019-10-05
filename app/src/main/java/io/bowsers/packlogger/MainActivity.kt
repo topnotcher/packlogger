@@ -22,16 +22,29 @@ import io.bowsers.packlogger.ShowPacksViewModel.Companion.SELECT_TOP_PACKS
 class MainActivity : FragmentActivity(), MainFragment.OnFragmentInteractionListener {
 
     companion object {
+        private const val KEY_ACCOUNT = "ACCOUNT"
         private const val REQUEST_SIGN_IN = 1
         private val main = MainFragment()
     }
     var account: GoogleSignInAccount? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onCreate(saved: Bundle?) {
+        super.onCreate(saved)
         setContentView(R.layout.activity_main)
-        if (savedInstanceState == null) {
+
+        if (saved != null && saved.containsKey(KEY_ACCOUNT)) {
+            account = saved.getParcelable(KEY_ACCOUNT)
+        }
+
+        if (account == null) {
             requestSignIn()
+        }
+    }
+
+    override fun onSaveInstanceState(saved: Bundle) {
+        super.onSaveInstanceState(saved)
+        if (account != null) {
+            saved.putParcelable(KEY_ACCOUNT, account!!)
         }
     }
 
