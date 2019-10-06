@@ -1,11 +1,8 @@
 package io.bowsers.packlogger
 
-import android.os.AsyncTask
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
-import java.io.File
 
 class PackList : ViewModel() {
     public data class PackData(var id: Int, var name: String) {

@@ -8,7 +8,6 @@ import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.sheets.v4.Sheets
 import java.io.File
-import java.io.IOException
 import java.util.*
 import kotlin.reflect.*
 import kotlin.reflect.full.memberProperties

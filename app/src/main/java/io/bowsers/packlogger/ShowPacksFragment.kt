@@ -1,7 +1,5 @@
 package io.bowsers.packlogger
 
-import android.graphics.Color
-import android.graphics.Typeface
 import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.view.Gravity
@@ -9,15 +7,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TableLayout
-import android.widget.TableRow
-import android.widget.TextView
-import androidx.core.view.forEach
 import androidx.lifecycle.Observer
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
-import com.google.api.services.sheets.v4.SheetsScopes
-
 
 class ShowPacksFragment : Fragment() {
 

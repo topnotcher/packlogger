@@ -1,7 +1,6 @@
 package io.bowsers.packlogger
 
 import android.content.Context
-import android.os.AsyncTask
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,10 +8,6 @@ import android.widget.BaseAdapter
 import android.widget.Filter
 import android.widget.Filterable
 import android.widget.TextView
-import androidx.lifecycle.LiveData
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
-import io.bowsers.packlogger.SheetsCollectionLoader.Query.ColumnType
-import java.io.*
 import java.util.*
 
 class PackNameCompleter(
