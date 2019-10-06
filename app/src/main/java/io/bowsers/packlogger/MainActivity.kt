@@ -52,11 +52,7 @@ class MainActivity : FragmentActivity(), MainFragment.OnFragmentInteractionListe
         val showPacks = ShowPacksFragment.newInstance(selection)
         val ft = supportFragmentManager.beginTransaction()
         ft.replace(R.id.content_area, showPacks)
-        ft.addToBackStack(null)
         ft.commit()
-    }
-
-    fun findPack(view: View) {
     }
 
     override fun onMainFragmentInteraction(uri: Uri) {

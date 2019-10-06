@@ -78,7 +78,7 @@ class ShowPacksFragment : Fragment() {
                 rating = it.rating.toString()
             }
 
-            t.addRow(it.id.toString(), it.name, rating, it.date)
+            t.addRow(it.id.toString(), it.name, rating, it.date.split(' ')[0])
         }
     }
 

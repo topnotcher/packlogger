@@ -1,12 +1,14 @@
 package io.bowsers.packlogger
 
 
+import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -49,7 +51,7 @@ class FindPack : Fragment() {
         return inflater.inflate(R.layout.fragment_find_pack, container, false)
     }
 
-    fun showPack(searchStr: String): Boolean {
+    private fun showPack(searchStr: String): Boolean {
         var id: Int? = null
 
         try {
@@ -79,17 +81,17 @@ class FindPack : Fragment() {
             // clear the search box so it is ready for a new search. If there's not a match,
             // this is either a typo or the the activity's state was saved with a displayed
             // pack and a partial search -- retain the contents in that case.
-            val tv = activity!!.findViewById(R.id.pack_search_str) as TextView
+            val tv = activity!!.findViewById(R.id.pack_search_str) as AutoCompleteTextView
             val search = tv.text.toString().toLowerCase()
             if (pack.name?.toLowerCase() == search || pack.id?.toString() == search) {
-               tv.text = ""
+                val imm = activity!!.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(tv.applicationWindowToken, InputMethodManager.HIDE_NOT_ALWAYS)
+                tv.text.clear()
             }
 
-            // TODO: ShowPack.newInstance that shit.
             activity!!.supportFragmentManager
                 .beginTransaction()
                 .replace(R.id.content_area, ShowPack.newInstance(pack.id, pack.name))
-                .addToBackStack(null)
                 .commit()
         }
     }

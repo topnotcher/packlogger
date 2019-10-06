@@ -94,6 +94,7 @@ class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
         private var mappedFieldNames: List<String>? = null
         private var cache: Cache? = null
         private var resultCallback: ((List<T>) -> Unit)? = null
+        private var resultFilter: ((List<T>) -> List<T>)? = null
 
        fun columnTypes(vararg types: ColumnType) : Query<T> {
             val newTypes = ArrayList<ColumnType>(types.size)
@@ -125,6 +126,11 @@ class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
 
         fun setResultCallback(callback: (List<T>) -> Unit) : Query<T> {
             resultCallback = callback
+            return this
+        }
+
+        fun filterResults(callback: (List<T>) -> List<T>) : Query<T> {
+            this.resultFilter = callback
             return this
         }
 
@@ -180,13 +186,18 @@ class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
 
                 if (mappedTypes != null)
                     convertDataTypes(values)
+                else
+                    throw IllegalStateException()
 
                 if (mappedFieldNames != null && mappedRowType != null) {
                     it.set(convertRowType(values) as Any)
+                } else {
+                    throw IllegalStateException()
                 }
             }
 
-            val result = data as List<T>
+            val converted = data as List<T>
+            val result = resultFilter?.invoke(converted) ?: converted
             resultCallback?.invoke(result)
             return result
         }
