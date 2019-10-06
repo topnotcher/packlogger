@@ -1,9 +1,7 @@
 package io.bowsers.packlogger
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -53,17 +51,12 @@ class MainActivity : FragmentActivity(), MainFragment.OnFragmentInteractionListe
         val selection: String = view.tag as String? ?: ShowPacksViewModel.SELECT_TOP_PACKS
         val showPacks = ShowPacksFragment.newInstance(selection)
         val ft = supportFragmentManager.beginTransaction()
-        ft.replace(R.id.main_container, showPacks)
+        ft.replace(R.id.content_area, showPacks)
         ft.addToBackStack(null)
         ft.commit()
     }
 
     fun findPack(view: View) {
-        supportFragmentManager
-            .beginTransaction()
-            .replace(R.id.main_container, FindPack())
-            .addToBackStack(null)
-            .commit()
     }
 
     override fun onMainFragmentInteraction(uri: Uri) {

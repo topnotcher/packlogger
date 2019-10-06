@@ -45,79 +45,57 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Show" />
+
             </TableRow>
 
         </TableLayout>
 
         <LinearLayout
-            android:id="@+id/show_pack_layout"
+            android:id="@+id/nav"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="match_parent">
 
-            <View
-                android:id="@+id/divider2"
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:background="?android:attr/listDivider" />
-
-            <LinearLayout
-                android:id="@+id/displayed_pack_info"
-                android:layout_width="match_parent"
+            <Space
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingStart="15dp"
-                android:paddingEnd="15dp">
+                android:layout_weight="1" />
 
-                <TextView
-                    android:id="@+id/displayed_pack_id"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="left"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+            <Button
+                android:id="@+id/log_results"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Log Results" />
 
-                <TextView
-                    android:id="@+id/displayed_pack_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="left"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
 
-                <TextView
-                    android:id="@+id/displayed_pack_rating"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+            <Button
+                android:id="@+id/show_top_packs"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="showPacks"
+                android:tag="top_packs"
+                android:text="Top Packs" />
 
-                <TextView
-                    android:id="@+id/displayed_pack_freshness"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:gravity="right"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
 
-            </LinearLayout>
+            <Button
+                android:id="@+id/show_all_packs"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="showPacks"
+                android:tag="all_packs"
+                android:text="All Packs" />
 
-            <View
-                android:id="@+id/divider"
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:background="?android:attr/listDivider" />
-
-            <ScrollView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <TableLayout
-                    android:id="@+id/pack_history_table"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </ScrollView>
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
 
         </LinearLayout>
 
