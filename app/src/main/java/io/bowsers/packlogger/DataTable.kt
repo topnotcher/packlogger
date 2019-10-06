@@ -13,7 +13,7 @@ import java.util.*
 class DataTable constructor (private val table: TableLayout, private val context: Context?) {
     data class Padding(val left: Int, val right: Int, val top: Int = 15, val bottom: Int = 15)
 
-    var rows = 0
+    private var rows = 0
     private val padding: LinkedList<Padding> = LinkedList()
     private val gravity: LinkedList<Int> = LinkedList()
     private var fontSize: Float = 10.0f
@@ -41,7 +41,10 @@ class DataTable constructor (private val table: TableLayout, private val context
     private fun addColumn(row: TableRow, text: String) : TextView {
         val textView = TextView(context)
         textView.minWidth = 4
-        textView.layoutParams = TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT)
+        textView.layoutParams = TableRow.LayoutParams(
+            TableRow.LayoutParams.WRAP_CONTENT,
+            TableRow.LayoutParams.WRAP_CONTENT
+        )
 
         textView.text = text
         row.addView(textView)
@@ -71,7 +74,10 @@ class DataTable constructor (private val table: TableLayout, private val context
             idx += 1
         }
 
-        row.layoutParams = TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT)
+        row.layoutParams = TableLayout.LayoutParams(
+            TableLayout.LayoutParams.MATCH_PARENT,
+            TableLayout.LayoutParams.WRAP_CONTENT
+        )
         table.addView(row)
         addSeparator()
 
@@ -93,7 +99,7 @@ class DataTable constructor (private val table: TableLayout, private val context
         }
     }
 
-    fun addSeparator() {
+    private fun addSeparator() {
         val row = TableRow(context)
         row.layoutParams = TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT)
         row.minimumHeight = 1

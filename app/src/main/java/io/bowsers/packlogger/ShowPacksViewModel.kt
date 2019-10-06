@@ -1,20 +1,9 @@
 package io.bowsers.packlogger
 
-import android.os.AsyncTask
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.api.client.extensions.android.http.AndroidHttp
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
-import com.google.api.client.http.javanet.NetHttpTransport
-import com.google.api.client.json.jackson2.JacksonFactory
-import com.google.api.services.sheets.v4.Sheets
-import com.google.api.services.sheets.v4.SheetsScopes
 import io.bowsers.packlogger.SheetsCollectionLoader.Query.ColumnType
-import java.io.File
-import java.util.*
 
 class ShowPacksViewModel : ViewModel() {
     data class PackData (var id: Int, var name: String, var rating: Double, var date: String) {
@@ -58,12 +47,12 @@ class ShowPacksViewModel : ViewModel() {
     }
 
     private fun buildQuery() : SheetsCollectionLoader.Query<PackData> {
-        var range: String
-        if (selection == "top_packs") {
-            range = "TOP!A2:D"
-        } else {
-            range = "ALL!A2:D"
-        }
+        val range =
+            if (selection == "top_packs") {
+                "TOP!A2:D"
+            } else {
+                "ALL!A2:D"
+            }
 
         return loader!!.query<PackData>(range).apply {
             columnTypes(ColumnType.INT, ColumnType.STRING, ColumnType.DOUBLE, ColumnType.STRING)

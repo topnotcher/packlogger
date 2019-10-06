@@ -78,13 +78,6 @@ class ShowPacksFragment : Fragment() {
     companion object {
         private const val SELECTION = "SELECT"
 
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param selection Parameter 1.
-         * @return A new instance of fragment MainFragment.
-         */
         @JvmStatic
         fun newInstance(selection: String) =
             ShowPacksFragment().apply {

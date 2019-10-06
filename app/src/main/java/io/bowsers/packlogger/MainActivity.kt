@@ -22,7 +22,7 @@ class MainActivity : FragmentActivity(), MainFragment.OnFragmentInteractionListe
         private const val REQUEST_SIGN_IN = 1
         private val main = MainFragment()
     }
-    var account: GoogleSignInAccount? = null
+    private var account: GoogleSignInAccount? = null
     val sheetsLoader by lazy {
         createSheetsLoader()
     }

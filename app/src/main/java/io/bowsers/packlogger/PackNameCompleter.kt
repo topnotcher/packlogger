@@ -16,8 +16,6 @@ class PackNameCompleter(
     private val getData: () -> List<PackList.PackData>
 ) : BaseAdapter(), Filterable {
 
-    private val derp: Int by lazy {1}
-
     // Only access in getFilter(): lazy loading blocks.
     private val packs: List<PackList.PackData> by lazy {
         getData()

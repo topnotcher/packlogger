@@ -13,7 +13,7 @@ import kotlin.reflect.*
 import kotlin.reflect.full.memberProperties
 
 class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
-    val SPREADSHEET_ID = "1G8EOexvxcP6n86BQsORNtwxsgpRT-VPrZt07NOZ-q-Q"
+    private val SPREADSHEET_ID = "1G8EOexvxcP6n86BQsORNtwxsgpRT-VPrZt07NOZ-q-Q"
     private var cacheDir: File? = null
 
 

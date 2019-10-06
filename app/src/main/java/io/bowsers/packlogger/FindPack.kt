@@ -52,13 +52,11 @@ class FindPack : Fragment() {
     }
 
     private fun showPack(searchStr: String): Boolean {
-        var id: Int? = null
-
-        try {
-            id = packs?.find{it.id == searchStr.toInt()}?.id
+        val id = try {
+            packs?.find{it.id == searchStr.toInt()}?.id
 
         } catch (e: NumberFormatException) {
-            id = packs?.find{searchStr.toLowerCase() == it.name.toLowerCase()}?.id
+            packs?.find{searchStr.toLowerCase() == it.name.toLowerCase()}?.id
         }
 
         if (id != null)
@@ -74,7 +72,6 @@ class FindPack : Fragment() {
 
     private fun showPackForReal(id: Int) {
         val pack = packs?.find{it.id == id}
-
 
         if (pack != null) {
             // If we display a pack and it's the same pack that's in the search box,
@@ -99,7 +96,7 @@ class FindPack : Fragment() {
     private fun configureSearchActions(tv: AutoCompleteTextView) {
         tv.setImeActionLabel("Show", EditorInfo.IME_ACTION_DONE)
 
-        tv.setOnItemClickListener { parent, view, position, id ->
+        tv.setOnItemClickListener { parent, _, position, _ ->
             showPack(parent.getItemAtPosition(position) as String)
         }
 

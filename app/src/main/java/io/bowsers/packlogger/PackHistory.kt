@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import java.util.*
 
 class PackHistory : ViewModel() {
-    public data class PackData(var id: Int, var rating: Double, var date: String, var loggedBy: String, var notes: String) {
+    data class PackData(var id: Int, var rating: Double, var date: String, var loggedBy: String, var notes: String) {
         constructor() : this(0, 0.0, "", "", "")
     }
 
@@ -32,7 +32,7 @@ class PackHistory : ViewModel() {
         buildQuery(packId).executeInBackground()
     }
 
-    fun filterResults(packId: Int, results: List<PackData>) : List<PackData> {
+    private fun filterResults(packId: Int, results: List<PackData>) : List<PackData> {
         // I initially wanted to bisect this, but: List gives no guarantee of random access
         // (although I know it is an ArrayList) and retrieving the data was already O(1) anyway
         // (it had to go through conversion to PackData), so there's not much benefit... Make it
