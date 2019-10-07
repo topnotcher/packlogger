@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import io.bowsers.packlogger.SheetsCollectionLoader.Query.ColumnType
+import java.lang.IllegalArgumentException
 
 class ShowPacksViewModel : ViewModel() {
     data class PackData (var id: Int=0, var name: String="", var rating: Double=0.0, var date: String="")
@@ -45,12 +46,12 @@ class ShowPacksViewModel : ViewModel() {
     }
 
     private fun buildQuery() : SheetsCollectionLoader.Query<PackData> {
-        val range =
-            if (selection == "top_packs") {
-                "TOP!A2:D"
-            } else {
-                "ALL!A2:D"
-            }
+        val columns = "A2:D"
+        val range = when (selection) {
+            SELECT_TOP_PACKS -> "TOP!$columns"
+            SELECT_ALL_PACKS -> "ALL!$columns"
+            else -> throw IllegalArgumentException()
+        }
 
         return loader!!.query<PackData>(range).apply {
             columnTypes(ColumnType.INT, ColumnType.STRING, ColumnType.DOUBLE, ColumnType.STRING)
