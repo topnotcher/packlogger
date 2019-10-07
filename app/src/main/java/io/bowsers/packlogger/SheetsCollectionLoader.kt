@@ -19,9 +19,7 @@ class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
 
     private class Cache(val cacheFile: File, val lifetime: Long) {
 
-        data class CachedData(var timestamp: Long, var data: List<List<Any>>?) {
-            constructor() : this(0, null)
-        }
+        data class CachedData(var timestamp: Long=0, var data: List<List<Any>>?=null)
 
         data class CacheResult(var cache: CachedData, val lifetime: Long) {
             val expired get() = (System.currentTimeMillis() / 1000 - cache.timestamp) > lifetime
