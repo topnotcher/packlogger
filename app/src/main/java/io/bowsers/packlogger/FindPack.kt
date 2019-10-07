@@ -90,6 +90,7 @@ class FindPack : Fragment() {
             activity!!.supportFragmentManager
                 .beginTransaction()
                 .replace(R.id.content_area, ShowPack.newInstance(pack.id, pack.name))
+                .addToBackStack(null)
                 .commit()
         }
     }

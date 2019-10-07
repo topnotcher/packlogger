@@ -3,8 +3,10 @@ package io.bowsers.packlogger
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.text.Layout
 import android.util.Log
 import android.view.View
+import android.widget.FrameLayout
 import androidx.fragment.app.FragmentActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -15,7 +17,9 @@ import com.google.android.gms.tasks.Task
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.services.sheets.v4.SheetsScopes
 
-class MainActivity : FragmentActivity(), MainFragment.OnFragmentInteractionListener {
+class MainActivity : FragmentActivity(),
+                     MainFragment.OnFragmentInteractionListener,
+                     ShowPacksFragment.OnFragmentInteractionListener {
 
     companion object {
         private const val KEY_ACCOUNT = "ACCOUNT"
@@ -59,6 +63,14 @@ class MainActivity : FragmentActivity(), MainFragment.OnFragmentInteractionListe
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
+    override fun onShowPacksFragmentInteraction(id: Int, name: String) {
+        supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.content_area, ShowPack.newInstance(id, name))
+            .addToBackStack(null)
+            .commit()
+    }
+
     private fun requestSignIn() {
         val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestScopes(Scope(SheetsScopes.SPREADSHEETS))
@@ -83,7 +95,7 @@ class MainActivity : FragmentActivity(), MainFragment.OnFragmentInteractionListe
             account = task.getResult(ApiException::class.java)
 
             supportFragmentManager.beginTransaction()
-            .add(R.id.main_container, main)
+            .replace(R.id.main_container, main)
             .commit()
 
         } catch (e: ApiException) {
