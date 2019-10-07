@@ -5,9 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
 class PackList : ViewModel() {
-    public data class PackData(var id: Int, var name: String) {
-        constructor() : this(0, "N/A")
-    }
+    data class PackData(var id: Int=0, var name: String="")
 
     private val packs: MutableLiveData<List<PackData>> by lazy {
         MutableLiveData<List<PackData>>().also {

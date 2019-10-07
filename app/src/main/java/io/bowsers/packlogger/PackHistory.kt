@@ -6,9 +6,8 @@ import androidx.lifecycle.ViewModel
 import java.util.*
 
 class PackHistory : ViewModel() {
-    data class PackData(var id: Int, var rating: Double, var date: String, var loggedBy: String, var notes: String) {
-        constructor() : this(0, 0.0, "", "", "")
-    }
+    data class PackData(var id: Int=0, var rating: Double=0.0, var date: String="",
+                        var loggedBy: String="", var notes: String="")
 
     private val history: MutableLiveData<List<PackData>> by lazy {
         MutableLiveData<List<PackData>>()

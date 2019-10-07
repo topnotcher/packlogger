@@ -6,9 +6,7 @@ import androidx.lifecycle.ViewModel
 import io.bowsers.packlogger.SheetsCollectionLoader.Query.ColumnType
 
 class ShowPacksViewModel : ViewModel() {
-    data class PackData (var id: Int, var name: String, var rating: Double, var date: String) {
-        constructor(): this(0, "N/A", 0.0, "")
-    }
+    data class PackData (var id: Int=0, var name: String="", var rating: Double=0.0, var date: String="")
 
     private var selection: String? = null
     private var loader: SheetsCollectionLoader? = null
