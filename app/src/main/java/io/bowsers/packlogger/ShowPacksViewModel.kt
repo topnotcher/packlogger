@@ -3,14 +3,21 @@ package io.bowsers.packlogger
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import io.bowsers.packlogger.SheetsCollectionLoader.Query.ColumnType
 import java.lang.IllegalArgumentException
 
-class ShowPacksViewModel : ViewModel() {
-    data class PackData (var id: Int=0, var name: String="", var rating: Double=0.0, var date: String="")
+class ShowPacksViewModel(private val selection: String, private val loader: SheetsCollectionLoader) : ViewModel() {
 
-    private var selection: String? = null
-    private var loader: SheetsCollectionLoader? = null
+    class Factory(private val selection: String, private val loader: SheetsCollectionLoader)
+        : ViewModelProvider.Factory {
+
+        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+           return ShowPacksViewModel(selection, loader) as T
+        }
+    }
+
+    data class PackData (var id: Int=0, var name: String="", var rating: Double=0.0, var date: String="")
 
     private val packs: MutableLiveData<List<PackData>> by lazy {
         MutableLiveData<List<PackData>>().also {
@@ -21,14 +28,6 @@ class ShowPacksViewModel : ViewModel() {
     companion object {
         const val SELECT_TOP_PACKS: String = "top_packs"
         const val SELECT_ALL_PACKS: String = "all_packs"
-    }
-
-    fun setSelection(selection: String?) {
-        this.selection = selection
-    }
-
-    fun setLoader(loader: SheetsCollectionLoader) {
-        this.loader = loader
     }
 
     fun getPacks(): LiveData<List<PackData>> {

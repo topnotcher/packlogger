@@ -21,24 +21,25 @@ import androidx.lifecycle.ViewModelProviders
  */
 class FindPack : Fragment() {
     private var adapter: PackNameCompleter? = null
-    private var viewModel: PackList? = null
     private var packs: List<PackList.PackData>? = null
+    private val viewModel: PackList by lazy {
+        val factory = PackList.Factory((activity!! as MainActivity).sheetsLoader)
+        ViewModelProviders.of(this, factory).get(PackList::class.java)
+    }
 
     override fun onActivityCreated(saved: Bundle?) {
         super.onActivityCreated(saved)
-        viewModel = ViewModelProviders.of(activity!!).get(PackList::class.java)
-        viewModel!!.setLoader((activity!! as MainActivity).sheetsLoader)
 
         adapter =
-            PackNameCompleter(context!!, R.layout.support_simple_spinner_dropdown_item, viewModel!!::getDataSynchronous)
+            PackNameCompleter(context!!, R.layout.support_simple_spinner_dropdown_item, viewModel::getDataSynchronous)
         val tv: AutoCompleteTextView = activity!!.findViewById(R.id.pack_search_str)
         tv.setAdapter(adapter)
         tv.threshold = 1
 
         configureSearchActions(tv)
 
-        viewModel!!.getPacks().removeObservers(viewLifecycleOwner)
-        viewModel!!.getPacks().observe(viewLifecycleOwner, Observer<List<PackList.PackData>> { packs->
+        viewModel.getPacks().removeObservers(viewLifecycleOwner)
+        viewModel.getPacks().observe(viewLifecycleOwner, Observer<List<PackList.PackData>> { packs->
             this.packs = packs
         })
     }

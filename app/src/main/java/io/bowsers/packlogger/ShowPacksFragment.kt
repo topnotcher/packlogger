@@ -11,7 +11,10 @@ import androidx.lifecycle.Observer
 
 class ShowPacksFragment : Fragment() {
 
-    private lateinit var viewModel: ShowPacksViewModel
+    private val viewModel: ShowPacksViewModel by lazy {
+        val factory = ShowPacksViewModel.Factory(selection!!, (activity!! as MainActivity).sheetsLoader)
+        ViewModelProviders.of(this, factory).get(ShowPacksViewModel::class.java)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,10 +33,6 @@ class ShowPacksFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProviders.of(this).get(ShowPacksViewModel::class.java)
-
-        viewModel.setLoader((activity as MainActivity)!!.sheetsLoader)
-        viewModel.setSelection(selection)
 
         if (table == null) {
             val padVertical = 30

@@ -22,7 +22,10 @@ import kotlin.math.round
 class ShowPack : Fragment() {
     private var packId: Int? = null
     private var packName: String? = null
-    private var viewModel: PackHistory? = null
+    private val viewModel: PackHistory by lazy {
+        val factory = PackHistory.Factory((activity!! as MainActivity).sheetsLoader)
+        ViewModelProviders.of(this, factory).get(PackHistory::class.java)
+    }
 
     companion object {
         private const val PACK_ID = "PACK_ID"
@@ -52,8 +55,7 @@ class ShowPack : Fragment() {
 
         val table = createTable()
 
-        viewModel = ViewModelProviders.of(this).get(PackHistory::class.java)?.apply {
-            setLoader((activity!! as MainActivity).sheetsLoader)
+        viewModel.apply {
             getHistory().removeObservers(viewLifecycleOwner)
             getHistory().observe(viewLifecycleOwner, Observer<List<PackHistory.PackData>> { history ->
                 updateHistory(table, history)

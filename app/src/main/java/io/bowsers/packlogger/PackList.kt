@@ -3,20 +3,21 @@ package io.bowsers.packlogger
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 
-class PackList : ViewModel() {
+class PackList(private val loader: SheetsCollectionLoader) : ViewModel() {
+    class Factory(private val loader: SheetsCollectionLoader) : ViewModelProvider.Factory {
+        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            return PackList(loader) as T
+        }
+    }
+
     data class PackData(var id: Int=0, var name: String="")
 
     private val packs: MutableLiveData<List<PackData>> by lazy {
         MutableLiveData<List<PackData>>().also {
             buildQuery().executeInBackground()
         }
-    }
-
-    private var loader: SheetsCollectionLoader? = null
-
-    fun setLoader(loader: SheetsCollectionLoader) {
-        this.loader = loader
     }
 
     fun getPacks(): LiveData<List<PackData>> {
@@ -33,7 +34,7 @@ class PackList : ViewModel() {
 
     private fun buildQuery() : SheetsCollectionLoader.Query<PackData> {
         val range = "all-packs!A2:B"
-        return loader!!.query<PackData>(range).apply {
+        return loader.query<PackData>(range).apply {
             columnTypes(
                 SheetsCollectionLoader.Query.ColumnType.INT,
                 SheetsCollectionLoader.Query.ColumnType.STRING
