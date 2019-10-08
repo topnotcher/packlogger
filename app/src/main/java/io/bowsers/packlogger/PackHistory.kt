@@ -21,17 +21,18 @@ class PackHistory(private val loader: SheetsCollectionLoader) : ViewModel() {
     }
 
     private val table by lazy {
-       loader.table<PackData>("logs-sorted!A2:E").apply{
-           setColumnTypes(
-               SheetsCollectionLoader.Table.ColumnType.INT,
-               SheetsCollectionLoader.Table.ColumnType.DOUBLE,
-               SheetsCollectionLoader.Table.ColumnType.STRING,
-               SheetsCollectionLoader.Table.ColumnType.STRING,
-               SheetsCollectionLoader.Table.ColumnType.STRING
-           )
-           setRowType(PackData::class.java, "id", "rating", "date", "loggedBy", "notes")
-           setCache("logs", 1200)
-       }
+        val cols = "A2:E"
+        loader.table<PackData>("logs-sorted!$cols", "logs!$cols").apply{
+            setColumnTypes(
+                SheetsCollectionLoader.Table.ColumnType.INT,
+                SheetsCollectionLoader.Table.ColumnType.DOUBLE,
+                SheetsCollectionLoader.Table.ColumnType.STRING,
+                SheetsCollectionLoader.Table.ColumnType.STRING,
+                SheetsCollectionLoader.Table.ColumnType.STRING
+            )
+            setRowType(PackData::class.java, "id", "rating", "date", "loggedBy", "notes")
+            setCache("logs", 1200)
+        }
     }
 
     fun getHistory(): LiveData<List<PackData>> {
