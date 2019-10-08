@@ -16,7 +16,20 @@ class PackList(private val loader: SheetsCollectionLoader) : ViewModel() {
 
     private val packs: MutableLiveData<List<PackData>> by lazy {
         MutableLiveData<List<PackData>>().also {
-            buildQuery().executeInBackground()
+            table.select().let {
+                it.setResultCallback(this::postValue)
+            }.executeInBackground()
+        }
+    }
+
+    private val table by lazy {
+        loader.table<PackData>("all-packs!A2:B").apply {
+            setColumnTypes(
+                SheetsCollectionLoader.Table.ColumnType.INT,
+                SheetsCollectionLoader.Table.ColumnType.STRING
+            )
+            setRowType(PackData::class.java, "id", "name")
+            setCache("packlist", 86400)
         }
     }
 
@@ -25,23 +38,10 @@ class PackList(private val loader: SheetsCollectionLoader) : ViewModel() {
     }
 
     fun getDataSynchronous(): List<PackData> {
-        return buildQuery().execute()
+        return table.select().execute()
     }
 
     private fun postValue(value: List<PackData>) {
         packs.postValue(value)
     }
-
-    private fun buildQuery() : SheetsCollectionLoader.Query<PackData> {
-        val range = "all-packs!A2:B"
-        return loader.query<PackData>(range).apply {
-            columnTypes(
-                SheetsCollectionLoader.Query.ColumnType.INT,
-                SheetsCollectionLoader.Query.ColumnType.STRING
-            )
-            unpackRows(PackData::class.java, "id", "name")
-            withCache("packlist", 3600)
-        }.setResultCallback(this::postValue)
-    }
-
 }

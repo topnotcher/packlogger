@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import io.bowsers.packlogger.SheetsCollectionLoader.Query.ColumnType
+import io.bowsers.packlogger.SheetsCollectionLoader.Table.ColumnType
 import java.lang.IllegalArgumentException
 
 class ShowPacksViewModel(private val selection: String, private val loader: SheetsCollectionLoader) : ViewModel() {
@@ -21,7 +21,26 @@ class ShowPacksViewModel(private val selection: String, private val loader: Shee
 
     private val packs: MutableLiveData<List<PackData>> by lazy {
         MutableLiveData<List<PackData>>().also {
-            loadPacks()
+            table.select().let {
+                it.setResultCallback(this::postValue)
+            }.executeInBackground()
+        }
+    }
+
+    private val range by lazy {
+        val columns = "A2:D"
+        when (selection) {
+            SELECT_TOP_PACKS -> "TOP!$columns"
+            SELECT_ALL_PACKS -> "ALL!$columns"
+            else -> throw IllegalArgumentException()
+        }
+    }
+
+    private val table by lazy {
+        loader.table<PackData>(range).apply {
+            setColumnTypes(ColumnType.INT, ColumnType.STRING, ColumnType.DOUBLE, ColumnType.STRING)
+            setRowType(PackData::class.java, "id", "name", "rating", "date")
+            setCache("showpacks-${selection}", 1200)
         }
     }
 
@@ -34,28 +53,9 @@ class ShowPacksViewModel(private val selection: String, private val loader: Shee
         return packs
     }
 
-    private fun loadPacks() {
-        buildQuery().executeInBackground()
-    }
-
     private fun postValue(result: List<PackData>) {
         // We need this function because we can't pass packs::postValue in in loadPacks: packs is
         // lazy initialized and loadPacks is the initializer. This causes infinite recursion.
         packs.postValue(result)
-    }
-
-    private fun buildQuery() : SheetsCollectionLoader.Query<PackData> {
-        val columns = "A2:D"
-        val range = when (selection) {
-            SELECT_TOP_PACKS -> "TOP!$columns"
-            SELECT_ALL_PACKS -> "ALL!$columns"
-            else -> throw IllegalArgumentException()
-        }
-
-        return loader!!.query<PackData>(range).apply {
-            columnTypes(ColumnType.INT, ColumnType.STRING, ColumnType.DOUBLE, ColumnType.STRING)
-            unpackRows(PackData::class.java, "id", "name", "rating", "date")
-            withCache("showpacks-${selection}", 1200)
-        }.setResultCallback(this::postValue)
     }
 }

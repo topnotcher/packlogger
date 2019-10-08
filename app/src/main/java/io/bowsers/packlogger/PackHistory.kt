@@ -20,6 +20,20 @@ class PackHistory(private val loader: SheetsCollectionLoader) : ViewModel() {
         MutableLiveData<List<PackData>>()
     }
 
+    private val table by lazy {
+       loader.table<PackData>("logs-sorted!A2:E").apply{
+           setColumnTypes(
+               SheetsCollectionLoader.Table.ColumnType.INT,
+               SheetsCollectionLoader.Table.ColumnType.DOUBLE,
+               SheetsCollectionLoader.Table.ColumnType.STRING,
+               SheetsCollectionLoader.Table.ColumnType.STRING,
+               SheetsCollectionLoader.Table.ColumnType.STRING
+           )
+           setRowType(PackData::class.java, "id", "rating", "date", "loggedBy", "notes")
+           setCache("logs", 1200)
+       }
+    }
+
     fun getHistory(): LiveData<List<PackData>> {
         return history
     }
@@ -29,7 +43,10 @@ class PackHistory(private val loader: SheetsCollectionLoader) : ViewModel() {
     }
 
     fun loadHistory(packId: Int) {
-        buildQuery(packId).executeInBackground()
+        table.select().let {
+            it.setResultCallback(this::postValue)
+            it.filterResults{results -> filterResults(packId, results)}
+        }.executeInBackground()
     }
 
     private fun filterResults(packId: Int, results: List<PackData>) : List<PackData> {
@@ -49,20 +66,5 @@ class PackHistory(private val loader: SheetsCollectionLoader) : ViewModel() {
         }
 
         return filtered
-    }
-
-    private fun buildQuery(packId: Int) : SheetsCollectionLoader.Query<PackData> {
-        val range = "logs-sorted!A2:E"
-        return loader.query<PackData>(range).apply {
-            columnTypes(
-                SheetsCollectionLoader.Query.ColumnType.INT,
-                SheetsCollectionLoader.Query.ColumnType.DOUBLE,
-                SheetsCollectionLoader.Query.ColumnType.STRING,
-                SheetsCollectionLoader.Query.ColumnType.STRING,
-                SheetsCollectionLoader.Query.ColumnType.STRING
-            )
-            unpackRows(PackData::class.java, "id", "rating", "date", "loggedBy", "notes")
-            withCache("logs", 1200)
-        }.setResultCallback(this::postValue).filterResults{results -> filterResults(packId, results)}
     }
 }
