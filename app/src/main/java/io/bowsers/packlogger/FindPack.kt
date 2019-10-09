@@ -96,14 +96,14 @@ class FindPack : Fragment() {
     }
 
     private fun configureSearchActions(tv: AutoCompleteTextView) {
-        tv.setImeActionLabel("Show", EditorInfo.IME_ACTION_DONE)
+        tv.setImeActionLabel("Show", EditorInfo.IME_ACTION_SEARCH)
 
         tv.setOnItemClickListener { parent, _, position, _ ->
             showPack(parent.getItemAtPosition(position) as String)
         }
 
         tv.setOnEditorActionListener { v, actionId, _ ->
-            (actionId == EditorInfo.IME_ACTION_DONE) && showPack(v.text.toString())
+            (actionId == EditorInfo.IME_ACTION_SEARCH) && showPack(v.text.toString())
         }
 
         (activity!!.findViewById(R.id.show_pack) as Button).apply {
