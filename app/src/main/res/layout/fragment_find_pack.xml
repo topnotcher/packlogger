@@ -34,7 +34,7 @@
                     android:id="@+id/pack_search_str"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:imeOptions="flagNoPersonalizedLearning"
+                    android:imeOptions="flagNoPersonalizedLearning|flagNoFullscreen"
                     android:inputType="textNoSuggestions|textFilter|text">
 
                     <requestFocus />
