@@ -20,7 +20,7 @@ class PackHistory(private val loader: SheetsCollectionLoader) : ViewModel() {
         MutableLiveData<List<PackData>>()
     }
 
-    private val table by lazy {
+    val table by lazy {
         val cols = "A2:E"
         loader.table<PackData>("logs-sorted!$cols", "logs!$cols").apply{
             setColumnTypes(

@@ -28,7 +28,9 @@ class MainActivity : FragmentActivity(),
         private val main = MainFragment()
     }
 
-    private var account: GoogleSignInAccount? = null
+    var account: GoogleSignInAccount? = null
+        private set
+
     val sheetsLoader by lazy {
         createSheetsLoader()
     }
@@ -73,8 +75,11 @@ class MainActivity : FragmentActivity(),
         ft.replace(R.id.content_area, fragment)
         ft.commit()
     }
+
+    fun logHistory(v: View) {
         val ft = supportFragmentManager.beginTransaction()
-        ft.replace(R.id.content_area, showPacks)
+        ft.replace(R.id.content_area, LogHistory())
+        ft.addToBackStack(null)
         ft.commit()
     }
 

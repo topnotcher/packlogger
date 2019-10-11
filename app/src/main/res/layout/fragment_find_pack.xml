@@ -64,6 +64,7 @@
                 android:id="@+id/log_results"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:onClick="logHistory"
                 android:text="Rate Pack" />
 
             <Space
