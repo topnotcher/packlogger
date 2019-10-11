@@ -242,6 +242,7 @@ class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
 
         private var resultCallback: ((List<T>) -> Unit)? = null
         private var resultFilter: ((List<T>) -> List<T>)? = null
+        private var useCache = true
 
         fun setResultCallback(callback: (List<T>) -> Unit) : Query<T> {
             resultCallback = callback
@@ -252,6 +253,12 @@ class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
             this.resultFilter = callback
             return this
         }
+
+        fun useCache(useCache: Boolean) : Query<T> {
+            this.useCache = useCache
+            return this
+        }
+
         fun executeInBackground() {
             LoadTask<T>().execute(this)
         }
@@ -262,16 +269,20 @@ class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
 
         private fun executeForReal() : List<T> {
             var data: List<T>? = null
-            val cached = table.getCache()
             var doLoad = false
 
-            if (cached != null) {
-                val cachedData = cached.data
-                if (cachedData != null) {
-                    data = processData(cachedData)
-                }
+            if (useCache) {
+                val cached = table.getCache()
+                if (cached != null) {
+                    val cachedData = cached.data
+                    if (cachedData != null) {
+                        data = processData(cachedData)
+                    }
 
-                doLoad = cached.expired
+                    doLoad = cached.expired
+                }
+            } else {
+                doLoad = true
             }
 
             if (data == null || doLoad) {

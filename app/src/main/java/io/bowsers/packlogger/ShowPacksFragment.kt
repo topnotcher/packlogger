@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.lifecycle.Observer
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 
 class ShowPacksFragment : Fragment() {
     private var listener: OnFragmentInteractionListener? = null
@@ -52,11 +53,17 @@ class ShowPacksFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+        val swipe = activity!!.findViewById(R.id.swipeContainer) as SwipeRefreshLayout
         viewModel.getPacks().apply{
             removeObservers(viewLifecycleOwner)
             observe(viewLifecycleOwner, Observer<List<ShowPacksViewModel.PackData>> { packs ->
                 updatePacks(packs)
+                swipe.isRefreshing = false
             })
+        }
+
+        swipe.setOnRefreshListener {
+           viewModel.refresh(true)
         }
     }
 

@@ -21,9 +21,7 @@ class ShowPacksViewModel(private val selection: String, private val loader: Shee
 
     private val packs: MutableLiveData<List<PackData>> by lazy {
         MutableLiveData<List<PackData>>().also {
-            table.select().let {
-                it.setResultCallback(this::postValue)
-            }.executeInBackground()
+            refresh()
         }
     }
 
@@ -51,6 +49,13 @@ class ShowPacksViewModel(private val selection: String, private val loader: Shee
 
     fun getPacks(): LiveData<List<PackData>> {
         return packs
+    }
+
+    fun refresh(skipCache: Boolean=false) {
+        table.select()
+            .useCache(!skipCache)
+            .setResultCallback(this::postValue)
+            .executeInBackground()
     }
 
     private fun postValue(result: List<PackData>) {
