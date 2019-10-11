@@ -7,6 +7,7 @@ import android.text.Layout
 import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -26,10 +27,14 @@ class MainActivity : FragmentActivity(),
         private const val REQUEST_SIGN_IN = 1
         private val main = MainFragment()
     }
+
     private var account: GoogleSignInAccount? = null
     val sheetsLoader by lazy {
         createSheetsLoader()
     }
+
+    private var showAllPacks: Fragment? = null
+    private var showTopPacks: Fragment? = null
 
     override fun onCreate(saved: Bundle?) {
         super.onCreate(saved)
@@ -53,7 +58,21 @@ class MainActivity : FragmentActivity(),
 
     fun showPacks(view: View) {
         val selection: String = view.tag as String? ?: ShowPacksViewModel.SELECT_TOP_PACKS
-        val showPacks = ShowPacksFragment.newInstance(selection)
+
+        var fragment: Fragment? = null
+        if (selection == ShowPacksViewModel.SELECT_TOP_PACKS) {
+            fragment = showTopPacks ?: ShowPacksFragment.newInstance(selection)
+            showTopPacks = fragment
+
+        } else {
+            fragment = showAllPacks ?: ShowPacksFragment.newInstance(selection)
+            showAllPacks = fragment
+        }
+
+        val ft = supportFragmentManager.beginTransaction()
+        ft.replace(R.id.content_area, fragment)
+        ft.commit()
+    }
         val ft = supportFragmentManager.beginTransaction()
         ft.replace(R.id.content_area, showPacks)
         ft.commit()

@@ -24,7 +24,7 @@ class FindPack : Fragment() {
     private var packs: List<PackList.PackData>? = null
     private val viewModel: PackList by lazy {
         val factory = PackList.Factory((activity!! as MainActivity).sheetsLoader)
-        ViewModelProviders.of(this, factory).get(PackList::class.java)
+        ViewModelProviders.of(activity!!, factory).get(PackList::class.java)
     }
 
     override fun onActivityCreated(saved: Bundle?) {
