@@ -377,7 +377,7 @@ class SheetsCollectionLoader(private val credential: GoogleAccountCredential?) {
         val valueRange = ValueRange().apply{
             setValues(data)
         }
-        spreadsheets.values().append(SPREADSHEET_ID, range, valueRange).setValueInputOption("RAW").execute()
+        spreadsheets.values().append(SPREADSHEET_ID, range, valueRange).setValueInputOption("USER_ENTERED").execute()
     }
 
     fun setCacheDir(cacheDir: File) {
