@@ -24,6 +24,7 @@ class MainActivity : FragmentActivity(),
 
     companion object {
         private const val KEY_ACCOUNT = "ACCOUNT"
+        private const val FRAGMENT_LOG_HISTORY = "LOG_HISTORY"
         private const val REQUEST_SIGN_IN = 1
         private val main = MainFragment()
     }
@@ -77,10 +78,15 @@ class MainActivity : FragmentActivity(),
     }
 
     fun logHistory(v: View) {
-        val ft = supportFragmentManager.beginTransaction()
-        ft.replace(R.id.content_area, LogHistory())
-        ft.addToBackStack(null)
-        ft.commit()
+        var frag = supportFragmentManager.findFragmentByTag(FRAGMENT_LOG_HISTORY)
+        if (frag == null || !frag.isVisible) {
+            frag = frag ?: LogHistory()
+
+            val ft = supportFragmentManager.beginTransaction()
+            ft.replace(R.id.content_area, LogHistory(), FRAGMENT_LOG_HISTORY)
+            ft.addToBackStack(null)
+            ft.commit()
+        }
     }
 
     override fun onMainFragmentInteraction(uri: Uri) {
