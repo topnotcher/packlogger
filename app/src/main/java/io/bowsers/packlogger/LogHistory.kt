@@ -89,7 +89,7 @@ class LogHistory : Fragment() {
 
         pack.id = packId ?: 0
         pack.rating = (activity!!.findViewById(R.id.enter_pack_rating) as RatingBar).rating.toDouble()
-        pack.notes = if (notes == "") makeCheckNotes() else notes + "\n" + makeCheckNotes()
+        pack.notes = arrayOf(notes, makeCheckNotes()).joinToString("\n")
         pack.loggedBy = (activity!! as MainActivity).account?.displayName ?: "????"
         pack.date = SimpleDateFormat(DATE_FORMAT).format(Date())
 
